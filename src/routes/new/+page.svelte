@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
+  import { startTrainingSession } from '$lib/stores.js';
 
   let isLoaded = $state(false);
   let learningPaths = $state([]);
@@ -44,11 +45,31 @@
     }
   }
 
-  function selectLearningPath(pathId) {
-    // TODO: Navigate to the learning session with the selected path
-    console.log('Selected learning path:', pathId);
-    // For now, just show an alert
-    alert(`Starting session: ${pathId}`);
+  async function selectLearningPath(pathId) {
+    try {
+      console.log('Loading training data for path ID:', pathId);
+      
+      // Load the training data from the backend
+      const trainingData = await invoke('load_training_data', { classId: pathId });
+      console.log('Training data loaded successfully:', trainingData);
+      console.log('Number of items:', trainingData?.items?.length || 0);
+      
+      if (!trainingData || !trainingData.items || trainingData.items.length === 0) {
+        throw new Error('No training items found in the selected learning path');
+      }
+      
+      // Start the training session with the loaded data
+      console.log('Starting training session...');
+      startTrainingSession(trainingData);
+      
+      // Navigate to the training page
+      console.log('Navigating to training page...');
+      goto('/training');
+    } catch (err) {
+      console.error('Failed to load training data:', err);
+      const errorMessage = err?.message || err?.toString() || 'Unknown error occurred';
+      alert(`Failed to load training data: ${errorMessage}`);
+    }
   }
 
   onMount(() => {

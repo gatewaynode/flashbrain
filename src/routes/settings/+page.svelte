@@ -1,17 +1,30 @@
 <script>
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
+  import { globalSettings, toggleDebugMode } from '$lib/stores.js';
 
   let isLoaded = $state(false);
+  let debugMode = $state(false);
 
   function goBack() {
     goto('/');
+  }
+
+  function handleDebugToggle() {
+    toggleDebugMode();
   }
 
   onMount(() => {
     setTimeout(() => {
       isLoaded = true;
     }, 100);
+
+    // Subscribe to global settings
+    const unsubscribe = globalSettings.subscribe(settings => {
+      debugMode = settings.debugMode;
+    });
+
+    return unsubscribe;
   });
 </script>
 
@@ -39,6 +52,7 @@
           <div class="feature">🎨 Theme and appearance</div>
           <div class="feature">⏱️ Timing and speed settings</div>
           <div class="feature">🔊 Audio and accessibility</div>
+          <div class="feature">🐛 Debug and development tools</div>
         </div>
         <div class="settings-grid">
           <div class="setting-item">
@@ -56,6 +70,16 @@
           <div class="setting-item">
             <span class="setting-label">Sound Effects</span>
             <div class="setting-toggle">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">Debug Mode</span>
+            <div 
+              class="setting-toggle" 
+              class:active={debugMode}
+              onclick={handleDebugToggle}
+            >
               <div class="toggle-slider"></div>
             </div>
           </div>
@@ -213,6 +237,10 @@
     transition: all 0.3s ease;
   }
 
+  .setting-toggle.active {
+    background: #007acc;
+  }
+
   .toggle-slider {
     width: 20px;
     height: 20px;
@@ -224,12 +252,24 @@
     transition: all 0.3s ease;
   }
 
+  .setting-toggle.active .toggle-slider {
+    transform: translateX(26px);
+  }
+
   .setting-toggle:hover {
     background: rgba(255,255,255,0.2);
   }
 
+  .setting-toggle.active:hover {
+    background: #005a9e;
+  }
+
   .setting-toggle:hover .toggle-slider {
     transform: scale(1.1);
+  }
+
+  .setting-toggle.active:hover .toggle-slider {
+    transform: translateX(26px) scale(1.1);
   }
 
   @media (max-width: 768px) {

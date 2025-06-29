@@ -61,3 +61,17 @@ Acceptance criteria:
 * The New Session page displays a list of available sessions derived from the JSON meta field
 * The title, date and description are displayed in the list
 * The README JSON schema matches what is in the provided static/classes/test-1/training.json file"
+
+### Story 5
+"As a user when I click on the 'Start Learning' button on the 'New Session' the JSON should be loaded in a global state variable called current_training_data and I should be taken to a new screen that iterates through the items.  The items present as their image fitted for the screen and then the image fades out as the text fades in.
+
+When all items are iterated through, the process starts over looping through the JSON 'items' list until the back button is clicked.
+
+Also update the README.md JSON schema to include the new 'class_id' and 'item_id' fields from static/classes/test-1/training.json.
+
+Acceptance criteria:
+
+* Clicking an item listed in new session loads the JSON item described
+* Clicking an item also opens up the training page where the items are displayed
+* The items are displayed as image first and then faded, while the text is faded in at the same time"
+
