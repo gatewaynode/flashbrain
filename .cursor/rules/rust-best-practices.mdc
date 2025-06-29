@@ -1,0 +1,322 @@
+# Rust Best Practices for FlashBrain Tauri App
+
+## Core Principles
+
+### 1. Keep Dependencies Current
+- **Always use the latest stable versions** in `Cargo.toml`
+- Regularly update dependencies with `cargo update`
+- Prefer well-maintained, popular crates
+- Use `cargo audit` to check for security vulnerabilities
+
+### 2. Code Simplicity & Readability
+- **Write small, focused functions** (max 30-50 lines)
+- Use clear, descriptive variable and function names
+- Prefer explicit over implicit behavior
+- Use early returns with `?` operator to reduce nesting
+
+### 3. Comprehensive Documentation
+- **Comment all non-obvious code** with clear explanations
+- Use doc comments (`///`) for public APIs
+- Explain the "why" not just the "what" in comments
+- Document complex algorithms and business logic
+
+### 4. Modular Architecture
+- **Break functionality into small, focused modules**
+- Each module should have a single responsibility
+- Use clear separation between data structures and logic
+- Prefer composition over inheritance
+
+## Tauri-Specific Guidelines
+
+### Command Structure
+```rust
+// Good: Clear, focused Tauri command
+#[tauri::command]
+async fn load_lesson_data(file_path: String) -> Result<LessonData, String> {
+    // Validate input
+    if file_path.is_empty() {
+        return Err("File path cannot be empty".to_string());
+    }
+    
+    // Load and parse data
+    let content = std::fs::read_to_string(&file_path)
+        .map_err(|e| format!("Failed to read file: {}", e))?;
+    
+    // Parse JSON with clear error handling
+    let lesson_data: LessonData = serde_json::from_str(&content)
+        .map_err(|e| format!("Invalid JSON: {}", e))?;
+    
+    Ok(lesson_data)
+}
+```
+
+### Error Handling
+```rust
+// Good: Custom error types for better error handling
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("File not found: {0}")]
+    FileNotFound(String),
+    #[error("Invalid JSON: {0}")]
+    InvalidJson(String),
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+}
+
+// Use in commands
+#[tauri::command]
+async fn process_lesson(file_path: String) -> Result<LessonData, AppError> {
+    let content = std::fs::read_to_string(&file_path)?;
+    let lesson_data: LessonData = serde_json::from_str(&content)
+        .map_err(|e| AppError::InvalidJson(e.to_string()))?;
+    Ok(lesson_data)
+}
+```
+
+## Code Organization
+
+### Module Structure
+```
+src/
+├── main.rs              # Application entry point
+├── lib.rs               # Library root
+├── commands/            # Tauri commands
+│   ├── mod.rs
+│   ├── lessons.rs
+│   └── files.rs
+├── models/              # Data structures
+│   ├── mod.rs
+│   ├── lesson.rs
+│   └── config.rs
+├── utils/               # Utility functions
+│   ├── mod.rs
+│   └── file_ops.rs
+└── error.rs             # Error types
+```
+
+### Module Declaration
+```rust
+// Good: Clear module organization
+pub mod commands;
+pub mod models;
+pub mod utils;
+pub mod error;
+
+// Re-export commonly used items
+pub use error::AppError;
+pub use models::LessonData;
+```
+
+## Data Structures
+
+### Struct Design
+```rust
+// Good: Clear, well-documented data structures
+/// Represents a single lesson with image and text
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Lesson {
+    /// Path to the lesson image file
+    pub image: String,
+    /// Text content to display
+    pub text: String,
+    /// Optional timing for word highlighting (in milliseconds)
+    pub timing: Option<Vec<u32>>,
+}
+
+// Good: Builder pattern for complex structs
+impl Lesson {
+    /// Create a new lesson with required fields
+    pub fn new(image: String, text: String) -> Self {
+        Self {
+            image,
+            text,
+            timing: None,
+        }
+    }
+    
+    /// Add timing information
+    pub fn with_timing(mut self, timing: Vec<u32>) -> Self {
+        self.timing = Some(timing);
+        self
+    }
+}
+```
+
+## Error Handling Patterns
+
+### Result Types
+```rust
+// Good: Use Result for operations that can fail
+pub fn load_config() -> Result<Config, AppError> {
+    let config_path = get_config_path()?;
+    let content = std::fs::read_to_string(config_path)?;
+    let config: Config = serde_json::from_str(&content)?;
+    Ok(config)
+}
+
+// Good: Use Option for optional values
+pub fn find_lesson_by_id(lessons: &[Lesson], id: &str) -> Option<&Lesson> {
+    lessons.iter().find(|lesson| lesson.id == id)
+}
+```
+
+## Performance Considerations
+
+### Efficient Patterns
+```rust
+// Good: Use references to avoid unnecessary cloning
+pub fn process_lessons(lessons: &[Lesson]) -> Vec<ProcessedLesson> {
+    lessons.iter()
+        .map(|lesson| process_single_lesson(lesson))
+        .collect()
+}
+
+// Good: Use iterators for memory efficiency
+pub fn filter_active_lessons(lessons: &[Lesson]) -> impl Iterator<Item = &Lesson> {
+    lessons.iter().filter(|lesson| lesson.is_active)
+}
+```
+
+## Testing
+
+### Unit Tests
+```rust
+// Good: Comprehensive test coverage
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_lesson_creation() {
+        let lesson = Lesson::new("image.png".to_string(), "Test text".to_string());
+        assert_eq!(lesson.image, "image.png");
+        assert_eq!(lesson.text, "Test text");
+        assert!(lesson.timing.is_none());
+    }
+    
+    #[test]
+    fn test_lesson_with_timing() {
+        let timing = vec![500, 400, 300];
+        let lesson = Lesson::new("image.png".to_string(), "Test".to_string())
+            .with_timing(timing.clone());
+        assert_eq!(lesson.timing, Some(timing));
+    }
+}
+```
+
+## Common Patterns
+
+### File Operations
+```rust
+// Good: Safe file operations with error handling
+pub fn read_json_file<T>(path: &str) -> Result<T, AppError> 
+where 
+    T: for<'de> Deserialize<'de>,
+{
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| AppError::FileNotFound(e.to_string()))?;
+    
+    serde_json::from_str(&content)
+        .map_err(|e| AppError::InvalidJson(e.to_string()))
+}
+```
+
+### Async Operations
+```rust
+// Good: Clear async patterns
+#[tauri::command]
+async fn load_lessons_async(file_path: String) -> Result<Vec<Lesson>, AppError> {
+    // Use tokio for async file operations if needed
+    let content = tokio::fs::read_to_string(file_path).await?;
+    let lessons: Vec<Lesson> = serde_json::from_str(&content)?;
+    Ok(lessons)
+}
+```
+
+## Cargo.toml Best Practices
+
+### Dependency Management
+```toml
+[dependencies]
+# Use specific versions for stability
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+
+# Tauri dependencies
+tauri = { version = "2.0", features = ["shell-open"] }
+
+[dev-dependencies]
+# Testing dependencies
+tokio-test = "0.4"
+```
+
+## Anti-Patterns to Avoid
+
+- ❌ Long, complex functions
+- ❌ Unclear variable names
+- ❌ Panicking in library code
+- ❌ Tight coupling between modules
+- ❌ Outdated dependencies
+- ❌ Uncommented complex logic
+- ❌ Unnecessary cloning and allocations
+- ❌ Ignoring Result values
+
+## Tools & Commands
+
+### Development Commands
+```bash
+# Build the project
+cargo build
+
+# Run tests
+cargo test
+
+# Check code quality
+cargo clippy
+
+# Format code
+cargo fmt
+
+# Update dependencies
+cargo update
+
+# Check for security vulnerabilities
+cargo audit
+```
+
+### Tauri Commands
+```bash
+# Build Tauri app
+cargo tauri build
+
+# Run Tauri in development
+cargo tauri dev
+
+# Build for specific platform
+cargo tauri build --target x86_64-apple-darwin
+```
+
+## Code Style
+
+### Formatting
+- Use `cargo fmt` to maintain consistent formatting
+- Follow Rust naming conventions (snake_case for variables/functions)
+- Use meaningful variable names
+- Keep line length reasonable (use line breaks)
+
+### Comments
+```rust
+// Good: Clear, helpful comments
+/// Calculates the total duration of a lesson based on its timing array.
+/// 
+/// # Arguments
+/// * `timing` - Vector of millisecond durations for each word
+/// 
+/// # Returns
+/// Total duration in milliseconds, or 0 if timing is empty
+pub fn calculate_total_duration(timing: &[u32]) -> u32 {
+    timing.iter().sum()
+}
+``` 

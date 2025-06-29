@@ -1,0 +1,220 @@
+# JavaScript Best Practices for FlashBrain Tauri App
+
+## Core Principles
+
+### 1. Keep Dependencies Current
+- **Always use the latest stable versions** of dependencies
+- Regularly update packages with `bun update`
+- Prefer modern ES6+ features over legacy patterns
+- Use Bun as the package manager and runtime
+
+### 2. Code Simplicity & Readability
+- **Write short, focused functions** (max 20-30 lines)
+- Prefer clear, descriptive variable names over clever abbreviations
+- Use early returns to reduce nesting
+- Avoid complex nested conditionals
+
+### 3. Comprehensive Documentation
+- **Comment all non-obvious code** with clear explanations
+- Use JSDoc comments for functions and classes
+- Explain the "why" not just the "what" in comments
+- Document complex business logic and edge cases
+
+### 4. Modular Architecture
+- **Break functionality into small, focused modules**
+- Each file should have a single responsibility
+- Use clear separation between UI components and business logic
+- Prefer composition over inheritance
+
+## Svelte-Specific Guidelines
+
+### Component Structure
+```javascript
+// Good: Small, focused component
+<script>
+  // Clear imports
+  import { onMount } from 'svelte';
+  
+  // Props with defaults
+  export let title = 'Default Title';
+  export let items = [];
+  
+  // Reactive declarations
+  $: filteredItems = items.filter(item => item.active);
+  
+  // Event handlers
+  function handleClick() {
+    // Clear, simple logic
+  }
+</script>
+
+<!-- Template with clear structure -->
+<div class="component">
+  <h2>{title}</h2>
+  {#each filteredItems as item}
+    <div>{item.name}</div>
+  {/each}
+</div>
+```
+
+### State Management
+- Use Svelte stores for shared state
+- Keep component state local when possible
+- Prefer reactive declarations over complex watchers
+
+## Tauri Integration
+
+### API Usage
+```javascript
+// Good: Clear Tauri API usage with error handling
+import { invoke } from '@tauri-apps/api/tauri';
+
+async function loadData() {
+  try {
+    // Clear function call with descriptive parameters
+    const result = await invoke('load_lesson_data', { 
+      filePath: '/path/to/lessons.json' 
+    });
+    return result;
+  } catch (error) {
+    // Handle errors gracefully
+    console.error('Failed to load data:', error);
+    throw new Error('Data loading failed');
+  }
+}
+```
+
+## Code Organization
+
+### File Structure
+```
+src/
+├── lib/
+│   ├── components/     # Reusable UI components
+│   ├── stores/         # Svelte stores
+│   ├── utils/          # Utility functions
+│   └── api/            # Tauri API wrappers
+├── routes/             # SvelteKit routes
+└── app.html           # Main HTML template
+```
+
+### Import/Export Patterns
+```javascript
+// Good: Clear, organized imports
+import { onMount } from 'svelte';
+import { lessonStore } from '$lib/stores/lessons';
+import { loadLessonData } from '$lib/api/lessons';
+import { formatText } from '$lib/utils/text';
+
+// Good: Named exports for clarity
+export function processLesson(lesson) {
+  // Implementation
+}
+
+export const DEFAULT_TIMING = 2000;
+```
+
+## Error Handling
+
+### Consistent Error Patterns
+```javascript
+// Good: Structured error handling
+async function performAction() {
+  try {
+    const result = await riskyOperation();
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Action failed:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Unknown error' 
+    };
+  }
+}
+```
+
+## Performance Considerations
+
+### Optimization Guidelines
+- Use `{#key}` blocks for dynamic content
+- Avoid unnecessary reactive declarations
+- Lazy load components when possible
+- Use `onMount` for side effects
+
+## Testing & Quality
+
+### Code Quality
+- Use `bun run check` to validate code
+- Keep functions pure when possible
+- Write self-documenting code
+- Use consistent formatting
+
+### Debugging
+- Add console.log statements for debugging (remove before production)
+- Use browser dev tools effectively
+- Test edge cases and error conditions
+
+## Common Patterns
+
+### Event Handling
+```javascript
+// Good: Clear event handler
+function handleLessonComplete(event) {
+  const lessonId = event.target.dataset.lessonId;
+  lessonStore.markComplete(lessonId);
+}
+```
+
+### Async Operations
+```javascript
+// Good: Clear async pattern
+async function initializeApp() {
+  // Load initial data
+  const lessons = await loadLessonData();
+  
+  // Update store
+  lessonStore.set(lessons);
+  
+  // Set up event listeners
+  setupEventListeners();
+}
+```
+
+## Anti-Patterns to Avoid
+
+- ❌ Long, complex functions
+- ❌ Unclear variable names
+- ❌ Missing error handling
+- ❌ Tight coupling between components
+- ❌ Outdated dependencies
+- ❌ Uncommented complex logic
+- ❌ Deep nesting and complex conditionals
+
+## Tools & Commands
+
+### Development Commands
+```bash
+# Start development server
+bun run dev
+
+# Build for production
+bun run build
+
+# Check code quality
+bun run check
+
+# Tauri development
+bun run tauri dev
+```
+
+### Package Management
+```bash
+# Add new dependency
+bun add package-name
+
+# Add dev dependency
+bun add -d package-name
+
+# Update all dependencies
+bun update
+``` 

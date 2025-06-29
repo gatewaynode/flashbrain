@@ -1,0 +1,245 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# FlashBrain Project Overview & Development Guidelines
+
+## Project Architecture
+
+### Tech Stack
+- **Frontend**: Svelte 5 + SvelteKit (JavaScript)
+- **Backend**: Rust (Tauri)
+- **Package Manager**: Bun
+- **Build Tool**: Vite
+- **Platform**: Cross-platform desktop app
+
+### Project Structure
+```
+flashbrain/
+├── src/                    # Frontend (Svelte)
+│   ├── lib/               # Shared components and utilities
+│   ├── routes/            # SvelteKit routes
+│   └── app.html          # Main HTML template
+├── src-tauri/             # Backend (Rust)
+│   ├── src/              # Rust source code
+│   ├── Cargo.toml        # Rust dependencies
+│   └── tauri.conf.json   # Tauri configuration
+├── static/                # Static assets
+└── package.json          # Frontend dependencies
+```
+
+## Development Workflow
+
+### Getting Started
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+
+# Run Tauri in development mode
+bun run tauri dev
+
+# Build for production
+bun run build
+bun run tauri build
+```
+
+### Code Organization Principles
+
+#### 1. Separation of Concerns
+- **Frontend (Svelte)**: UI components, state management, user interactions
+- **Backend (Rust)**: File I/O, data processing, system operations
+- **Communication**: Tauri commands for frontend-backend communication
+
+#### 2. Modular Design
+- Each file should have a single, clear responsibility
+- Break complex functionality into smaller, focused modules
+- Use clear interfaces between modules
+
+#### 3. Data Flow
+```
+Frontend (Svelte) ←→ Tauri Commands ←→ Backend (Rust)
+```
+
+## Cross-Language Best Practices
+
+### 1. Keep Dependencies Current
+- **JavaScript**: Use `bun update` regularly
+- **Rust**: Use `cargo update` regularly
+- **Tauri**: Keep Tauri CLI and dependencies updated
+- Monitor for security vulnerabilities
+
+### 2. Code Simplicity
+- Write short, focused functions (max 20-50 lines)
+- Use clear, descriptive names
+- Avoid complex nested logic
+- Prefer explicit over implicit behavior
+
+### 3. Comprehensive Documentation
+- Comment all non-obvious code
+- Use JSDoc for JavaScript functions
+- Use doc comments (`///`) for Rust public APIs
+- Explain the "why" not just the "what"
+
+### 4. Error Handling
+- **JavaScript**: Use try-catch blocks and return error objects
+- **Rust**: Use Result types and custom error enums
+- Provide meaningful error messages
+- Handle edge cases gracefully
+
+## Tauri Integration Patterns
+
+### Command Structure
+```rust
+// Rust: Tauri command
+#[tauri::command]
+async fn load_lesson_data(file_path: String) -> Result<LessonData, String> {
+    // Implementation
+}
+```
+
+```javascript
+// JavaScript: Calling Tauri command
+import { invoke } from '@tauri-apps/api/tauri';
+
+async function loadData() {
+  try {
+    const result = await invoke('load_lesson_data', { filePath: '/path/to/file.json' });
+    return result;
+  } catch (error) {
+    console.error('Failed to load data:', error);
+    throw error;
+  }
+}
+```
+
+### Data Serialization
+- Use JSON for data exchange between frontend and backend
+- Define clear data structures in both languages
+- Validate data on both sides
+- Use consistent naming conventions
+
+## Development Guidelines
+
+### 1. Feature Development
+- Start with small, focused features
+- Implement one piece of functionality at a time
+- Test each component independently
+- Integrate gradually
+
+### 2. Testing Strategy
+- **Frontend**: Unit tests for components and utilities
+- **Backend**: Unit tests for Rust functions
+- **Integration**: Test Tauri commands end-to-end
+- **Manual**: Test UI interactions and user flows
+
+### 3. Performance Considerations
+- **Frontend**: Use Svelte's reactive system efficiently
+- **Backend**: Minimize allocations and use references
+- **Communication**: Batch operations when possible
+- **Assets**: Optimize images and static files
+
+### 4. Security
+- Validate all inputs on both frontend and backend
+- Use proper error handling to avoid information leakage
+- Keep dependencies updated for security patches
+- Follow principle of least privilege
+
+## File Naming Conventions
+
+### Frontend (Svelte)
+- Components: `PascalCase.svelte`
+- Utilities: `camelCase.js`
+- Stores: `camelCase.js`
+- Constants: `UPPER_SNAKE_CASE.js`
+
+### Backend (Rust)
+- Modules: `snake_case.rs`
+- Functions: `snake_case`
+- Structs: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+
+## Common Development Tasks
+
+### Adding New Features
+1. Define the feature requirements
+2. Plan the data structures needed
+3. Implement backend logic (Rust)
+4. Create Tauri commands
+5. Implement frontend UI (Svelte)
+6. Add error handling
+7. Test thoroughly
+
+### Debugging
+- **Frontend**: Use browser dev tools and console.log
+- **Backend**: Use println! and Rust debugger
+- **Tauri**: Check Tauri logs and command responses
+- **Integration**: Test commands manually
+
+### Performance Optimization
+- Profile both frontend and backend
+- Identify bottlenecks
+- Optimize data structures and algorithms
+- Use appropriate caching strategies
+
+## Deployment
+
+### Building
+```bash
+# Build frontend
+bun run build
+
+# Build Tauri app
+bun run tauri build
+
+# Build for specific platform
+bun run tauri build --target x86_64-apple-darwin
+```
+
+### Distribution
+- Use Tauri's built-in updater
+- Sign applications for distribution
+- Test on target platforms
+- Provide clear installation instructions
+
+## Maintenance
+
+### Regular Tasks
+- Update dependencies monthly
+- Review and refactor code quarterly
+- Update documentation as needed
+- Monitor for security issues
+
+### Code Quality
+- Use linters and formatters
+- Run tests regularly
+- Review code for best practices
+- Maintain consistent coding standards
+
+## Resources
+
+### Documentation
+- [Svelte Documentation](mdc:https:/svelte.dev/docs)
+- [SvelteKit Documentation](mdc:https:/kit.svelte.dev/docs)
+- [Tauri Documentation](mdc:https:/tauri.app/docs)
+- [Rust Documentation](mdc:https:/doc.rust-lang.org/book)
+
+### Tools
+- **Frontend**: Bun, Vite, Svelte DevTools
+- **Backend**: Cargo, Clippy, Rust Analyzer
+- **Tauri**: Tauri CLI, Tauri DevTools
+- **General**: Git, VS Code/Cursor
+
+## Anti-Patterns to Avoid
+
+- ❌ Large, monolithic functions
+- ❌ Tight coupling between frontend and backend
+- ❌ Inconsistent error handling
+- ❌ Poor documentation
+- ❌ Outdated dependencies
+- ❌ Complex nested logic
+- ❌ Unclear variable names
+- ❌ Ignoring security considerations 
