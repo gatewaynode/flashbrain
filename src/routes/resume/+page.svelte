@@ -24,7 +24,7 @@
   
   <div class="content">
     <header class="header">
-      <button class="back-button" on:click={goBack}>
+      <button class="back-button" onclick={goBack}>
         ← Back
       </button>
       <h1 class="title">Resume</h1>
@@ -40,7 +40,7 @@
           <div class="feature">📊 View progress history</div>
           <div class="feature">🎯 Pick up where you left off</div>
         </div>
-        <button class="cta-button" on:click={() => goto('/new')}>
+        <button class="cta-button" onclick={() => goto('/new')}>
           Start New Session
         </button>
       </div>

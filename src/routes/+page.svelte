@@ -77,8 +77,8 @@
           <li class="menu-item" class:active={index === currentIndex}>
             <button 
               class="menu-button"
-              on:click={() => navigateToItem(item.id)}
-              on:mouseenter={() => currentIndex = index}
+              onclick={() => navigateToItem(item.id)}
+              onmouseenter={() => currentIndex = index}
             >
               <span class="menu-label">{item.label}</span>
               <span class="menu-description">{item.description}</span>

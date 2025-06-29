@@ -24,7 +24,7 @@
   
   <div class="content">
     <header class="header">
-      <button class="back-button" on:click={goBack}>
+      <button class="back-button" onclick={goBack}>
         ← Back
       </button>
       <h1 class="title">Create</h1>
