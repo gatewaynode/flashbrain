@@ -26,3 +26,13 @@ Acceptance criteria:
 
 * The `on:click` event handler is replaced with `onclick` attribute
 "
+
+### Story 3
+
+"As a user the app window is opening too short to show the full landing menu.
+
+Adjust the default app height by about 40% to display the entire menu and footer.
+
+Acceptance criteria:
+
+* The Tauri app opens about 40% taller so all menu items and the footer are visible."
