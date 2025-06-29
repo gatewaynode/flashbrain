@@ -40,12 +40,14 @@ A desktop application that visually introduces learners to content by first show
 ```json
 {
   "meta": {
+    "class_id": "test-1",
     "title": "Marcus Aurelius Quotes",
     "date": "2025-06-29",
     "description": "This is a test of the flashbrain app. It is a simple app that allows you to create flashcards with images and text. The app will then flash the image and text for a given duration and speed."
   },
   "items": [
     {
+      "item_id": "1",
       "text": "Men exist for the sake of one another. Teach them then or bear with them.",
       "image": "/static/classes/test-1/test_pattern.png",
       "actions": [
@@ -57,6 +59,20 @@ A desktop application that visually introduces learners to content by first show
           }
         }
       ]
+    },
+    {
+      "item_id": "2",
+      "text": "Does the sun undertake to do the work of the rain, or Aesculpius the work of the Fruit-bearer(the earth)? And how is it with respect to each of the stars, are they not different and yet they work together to the same end?",
+      "image": "/static/classes/test-1/test_pattern.png",
+      "actions": [
+        {
+          "type": "flash",
+          "payload": {
+            "duration": 100,
+            "speed": 10
+          }
+        }
+      ]
     }
   ]
 }
@@ -65,12 +81,14 @@ A desktop application that visually introduces learners to content by first show
 ### Schema Details
 
 #### Meta Object
+- `class_id`: Unique identifier for the learning class/session
 - `title`: Display name for the learning session
 - `date`: Creation or last modified date (YYYY-MM-DD format)
 - `description`: Detailed description of the learning content
 
 #### Items Array
 Each item represents a single learning card:
+- `item_id`: Unique identifier for the learning item
 - `text`: The text content to display
 - `image`: Path to the associated image file
 - `actions`: Array of actions to perform with the item

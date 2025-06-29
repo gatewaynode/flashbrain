@@ -5,6 +5,7 @@ use std::env;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
+    pub class_id: String,
     pub title: String,
     pub date: String,
     pub description: String,
@@ -18,6 +19,7 @@ pub struct TrainingData {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrainingItem {
+    pub item_id: String,
     pub text: String,
     pub image: String,
     pub actions: Vec<Action>,
@@ -157,6 +159,59 @@ fn test_json_parsing() -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+fn load_training_data(class_id: String) -> Result<TrainingData, String> {
+    // Try multiple possible paths for the classes directory
+    let possible_paths = vec![
+        "static/classes",
+        "../static/classes",
+        "../../static/classes",
+        "./static/classes",
+    ];
+
+    let mut classes_dir = None;
+    
+    for path_str in &possible_paths {
+        let path = Path::new(path_str);
+        if path.exists() {
+            classes_dir = Some(path);
+            println!("Found classes directory at: {}", path.display());
+            break;
+        }
+    }
+
+    let classes_dir = match classes_dir {
+        Some(dir) => dir,
+        None => {
+            return Err("Could not find static/classes directory".to_string());
+        }
+    };
+
+    // Look for the specific class directory
+    let class_path = classes_dir.join(&class_id);
+    if !class_path.exists() {
+        return Err(format!("Class directory '{}' not found", class_id));
+    }
+
+    // Look for training.json in this directory
+    let json_path = class_path.join("training.json");
+    
+    if !json_path.exists() {
+        return Err(format!("training.json not found in class '{}'", class_id));
+    }
+
+    println!("Loading training data from: {}", json_path.display());
+    
+    let json_content = fs::read_to_string(&json_path)
+        .map_err(|e| format!("Failed to read {}: {}", json_path.display(), e))?;
+    
+    let training_data: TrainingData = serde_json::from_str(&json_content)
+        .map_err(|e| format!("Failed to parse JSON in {}: {}", json_path.display(), e))?;
+    
+    println!("Successfully loaded training data for: {}", training_data.meta.title);
+    Ok(training_data)
+}
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -167,7 +222,7 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing])
+        .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing, load_training_data])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
