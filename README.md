@@ -39,19 +39,57 @@ A desktop application that visually introduces learners to content by first show
 
 ```json
 {
-  "lessons": [
+  "meta": {
+    "title": "Marcus Aurelius Quotes",
+    "date": "2025-06-29",
+    "description": "This is a test of the flashbrain app. It is a simple app that allows you to create flashcards with images and text. The app will then flash the image and text for a given duration and speed."
+  },
+  "items": [
     {
-      "image": "assets/image1.png",
-      "text": "The quick brown fox jumps over the lazy dog.",
-      "timing": [500, 400, 450, 600, 300, 500, 400, 350, 600]
+      "text": "Men exist for the sake of one another. Teach them then or bear with them.",
+      "image": "/static/classes/test-1/test_pattern.png",
+      "actions": [
+        {
+          "type": "flash",
+          "payload": {
+            "duration": 85,
+            "speed": 11
+          }
+        }
+      ]
     }
   ]
 }
 ```
 
-- `image`: Local path to image asset
-- `text`: Text to display
-- `timing` *(optional)*: Array of milliseconds per word for highlighting
+### Schema Details
+
+#### Meta Object
+- `title`: Display name for the learning session
+- `date`: Creation or last modified date (YYYY-MM-DD format)
+- `description`: Detailed description of the learning content
+
+#### Items Array
+Each item represents a single learning card:
+- `text`: The text content to display
+- `image`: Path to the associated image file
+- `actions`: Array of actions to perform with the item
+  - `type`: Action type (e.g., "flash")
+  - `payload`: Action-specific parameters
+    - `duration`: Duration in milliseconds
+    - `speed`: Speed setting (1-11 frames per second)
+
+### File Structure
+```
+static/classes/
+├── session-name-1/
+│   ├── training.json
+│   └── image1.png
+├── session-name-2/
+│   ├── training.json
+│   └── image2.png
+└── ...
+```
 
 ---
 

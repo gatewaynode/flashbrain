@@ -2,8 +2,19 @@
 
 Because of course we want to be agile and work through a series of stories as we build our app.
 
+## Setup phase
+
+For this I was pretty straightforwad and brief and actually asked Cursor to write it's own Cursor project rules with this prompt.
+
+    This is a Tauri app made up of Javascript and Rust parts with a Bun webserver, so let's make some Cursor project rules .mdc files in .cursor/rules that represent best practices in Javascript(no typescript) and Rust. 
+
+    Some of my preferences that I want to catpure in the rules are staying on the latest stable dependencies, keeping code short and simple, making sure to explain code  with comments, and working on small modular pieces of logic.
+
+I had to rename the files from .md to .mdc, but everything else seemed ok in review.
+
 ## MVP Phase
 
+I'll create user stories as prompts as we go, each story except the first will be on its own git branch and require a PR before merging it in.  As part of the review I'm going to make sure the app launches locally, the features I expect to see are there, and once we get to adding in tests that they all pass.
 
 ### Story 1
 
@@ -36,3 +47,17 @@ Adjust the default app height by about 40% to display the entire menu and footer
 Acceptance criteria:
 
 * The Tauri app opens about 40% taller so all menu items and the footer are visible."
+
+### Story 4
+
+"As a user when I click on new session the page will give me a list of available learning paths.
+
+The list items can be filled from the json files inside each directory in the static/classes folder.  Each JSON contains a `meta` field with the title, date and description that should be used in the display list.
+
+Also update the README.md format to match the JSON schema in static/classes/test-1/training.json.
+
+Acceptance criteria:
+
+* The New Session page displays a list of available sessions derived from the JSON meta field
+* The title, date and description are displayed in the list
+* The README JSON schema matches what is in the provided static/classes/test-1/training.json file"

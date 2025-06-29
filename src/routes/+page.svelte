@@ -105,13 +105,6 @@
     box-sizing: border-box;
   }
 
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #000;
-    color: #fff;
-    overflow: hidden;
-  }
-
   /* Landing page container */
   .landing-page {
     min-height: 100vh;
@@ -306,10 +299,5 @@
   .menu-button:focus {
     outline: 2px solid rgba(255,255,255,0.3);
     outline-offset: 2px;
-  }
-
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
   }
 </style>

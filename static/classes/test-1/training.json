@@ -1,11 +1,22 @@
 {
   "meta": {
     "title": "Marcus Aurelius Quotes",
+    "date": "2025-06-29",
+    "description": "This is a test of the flashbrain app.  It is a simple app that allows you to create flashcards with images and text.  The app will then flash the image and text for a given duration and speed."
   },
   "items": [
     {
-      "data": "Men exist for the sake of one another.  Teach them then or bear with them.",
+      "text": "Men exist for the sake of one another.  Teach them then or bear with them.",
       "image": "/static/classes/test-1/test_pattern.png",
-    },
-  ],
+      "actions": [
+        {
+          "type": "flash",
+          "payload": {
+            "duration": 85,
+            "speed": 11
+          }
+        }
+      ]
+    }
+  ]
 }
