@@ -2,12 +2,15 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
-  import { startTrainingSession } from '$lib/stores.js';
+  import { startTrainingSession, globalSettings } from '$lib/stores.js';
 
   let isLoaded = $state(false);
   let learningPaths = $state([]);
   let isLoading = $state(true);
   let error = $state(null);
+  let testResult = $state(null);
+  let isRunningTest = $state(false);
+  let debugMode = $state(false);
 
   function goBack() {
     goto('/');
@@ -72,14 +75,37 @@
     }
   }
 
+  async function runLessonDiscrepancyTest() {
+    try {
+      isRunningTest = true;
+      testResult = null;
+      console.log('Running lesson discrepancy test...');
+      const result = await invoke('test_lesson_discrepancy');
+      console.log('Lesson discrepancy test result:', result);
+      testResult = result;
+    } catch (err) {
+      console.error('Lesson discrepancy test failed:', err);
+      testResult = `Test failed: ${err?.message || err?.toString() || 'Unknown error'}`;
+    } finally {
+      isRunningTest = false;
+    }
+  }
+
   onMount(() => {
     setTimeout(() => {
       isLoaded = true;
     }, 100);
     
+    // Subscribe to global settings
+    const unsubscribe = globalSettings.subscribe(settings => {
+      debugMode = settings.debugMode;
+    });
+    
     // Test JSON parsing first
     testJsonParsing();
     loadLearningPaths();
+    
+    return unsubscribe;
   });
 
   async function testJsonParsing() {
@@ -108,6 +134,26 @@
       <h1 class="title">New Session</h1>
       <p class="subtitle">Choose a learning path to begin</p>
     </header>
+
+    <!-- Test Section - Only visible in debug mode -->
+    {#if debugMode}
+      <div class="test-section">
+        <button 
+          class="test-button" 
+          onclick={runLessonDiscrepancyTest}
+          disabled={isRunningTest}
+        >
+          {isRunningTest ? 'Running Test...' : 'Test Lesson Detection'}
+        </button>
+        
+        {#if testResult}
+          <div class="test-results">
+            <h4>Test Results:</h4>
+            <pre class="test-output">{testResult}</pre>
+          </div>
+        {/if}
+      </div>
+    {/if}
 
     <div class="learning-paths-container">
       {#if isLoading}
@@ -355,22 +401,24 @@
   }
 
   .path-actions {
-    display: flex;
-    justify-content: flex-end;
+    margin-top: auto;
+    padding-top: 1rem;
   }
 
   .start-button {
     background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
     color: #000;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
     font-weight: 600;
+    display: inline-block;
     transition: all 0.3s ease;
   }
 
   .path-card:hover .start-button {
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255,255,255,0.2);
   }
 
   @media (max-width: 768px) {
@@ -401,5 +449,61 @@
       margin-left: 0;
       margin-top: 0.5rem;
     }
+  }
+
+  /* Test Section Styles */
+  .test-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .test-button {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+  }
+
+  .test-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+  }
+
+  .test-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .test-results {
+    text-align: left;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .test-results h4 {
+    color: #fff;
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+  }
+
+  .test-output {
+    color: #a0a0a0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 </style> 

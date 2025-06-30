@@ -1,6 +1,105 @@
 # FlashBrain
 
-A Tauri Flash Mnemonic  App
+A Tauri desktop application for creating and using flashcards with images and text.
+
+## Features
+
+- Create and edit flashcard lessons
+- Import existing lessons
+- Training mode with image and text display
+- Crossfade animations between image and text
+- Word-by-word highlighting during training
+- Native file dialogues for lesson management
+
+## JSON Schema
+
+The application uses JSON files to store lesson data. Here's the schema:
+
+```json
+{
+  "meta": {
+    "class_id": "string",
+    "title": "string",
+    "date": "string (YYYY-MM-DD)",
+    "description": "string",
+    "seconds_per_word": "number"
+  },
+  "items": [
+    {
+      "item_id": "string",
+      "text": "string",
+      "image": "string (path to image)",
+      "actions": [
+        {
+          "type": "string",
+          "payload": {
+            "speed": "number"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Field Descriptions
+
+- `meta.class_id`: Unique identifier for the lesson
+- `meta.title`: Display name for the lesson
+- `meta.date`: Creation date in YYYY-MM-DD format
+- `meta.description`: Description of the lesson content
+- `meta.seconds_per_word`: Duration each word is highlighted during training
+- `items[].item_id`: Unique identifier for each flashcard
+- `items[].text`: Text content to display
+- `items[].image`: Path to the image file
+- `items[].actions[].type`: Type of action (e.g., "flash")
+- `items[].actions[].payload.speed`: Speed parameter for the action
+
+## Development
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) - JavaScript runtime and package manager
+- [Rust](https://rust-lang.org/) - Systems programming language
+- [Tauri CLI](https://tauri.app/) - Desktop app framework
+
+### Setup
+
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+
+# Run Tauri in development mode
+bun run tauri dev
+
+# Build for production
+bun run build
+bun run tauri build
+```
+
+## Project Structure
+
+```
+flashbrain/
+├── src/                    # Frontend (Svelte)
+│   ├── lib/               # Shared components and utilities
+│   ├── routes/            # SvelteKit routes
+│   └── app.html          # Main HTML template
+├── src-tauri/             # Backend (Rust)
+│   ├── src/              # Rust source code
+│   ├── Cargo.toml        # Rust dependencies
+│   └── tauri.conf.json   # Tauri configuration
+├── static/                # Static assets
+│   └── classes/          # Lesson data
+└── package.json          # Frontend dependencies
+```
+
+## License
+
+MIT
 
 ## Description
 
@@ -55,7 +154,6 @@ A desktop application that visually introduces learners to content by first show
         {
           "type": "flash",
           "payload": {
-            "duration": 85,
             "speed": 11
           }
         }
@@ -69,7 +167,6 @@ A desktop application that visually introduces learners to content by first show
         {
           "type": "flash",
           "payload": {
-            "duration": 100,
             "speed": 10
           }
         }
@@ -96,7 +193,6 @@ Each item represents a single learning card:
 - `actions`: Array of actions to perform with the item
   - `type`: Action type (e.g., "flash")
   - `payload`: Action-specific parameters
-    - `duration`: Duration in milliseconds
     - `speed`: Speed setting (1-11 frames per second)
 
 ### File Structure

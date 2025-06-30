@@ -41,4 +41,54 @@ export function formatWordCount(wordCount) {
     return '1 word';
   }
   return `${wordCount} words`;
+}
+
+/**
+ * Splits text into words for highlighting
+ * @param {string} text - The text to split
+ * @returns {string[]} - Array of words
+ */
+export function splitTextIntoWords(text) {
+  if (!text || typeof text !== 'string') {
+    return [];
+  }
+  
+  // Remove extra whitespace and split by whitespace
+  return text.trim().split(/\s+/).filter(word => word.length > 0);
+}
+
+/**
+ * Calculates word highlight duration based on total text duration
+ * @param {number} totalDuration - Total text display duration in milliseconds
+ * @param {number} wordCount - Number of words in the text
+ * @returns {number} - Duration per word in milliseconds
+ */
+export function calculateWordHighlightDuration(totalDuration, wordCount) {
+  if (wordCount <= 0) {
+    return 0;
+  }
+  
+  return totalDuration / wordCount;
+}
+
+/**
+ * Test function for word highlighting functionality
+ * @returns {object} - Test results
+ */
+export function testWordHighlighting() {
+  const testText = "Men exist for the sake of one another.";
+  const words = splitTextIntoWords(testText);
+  const wordCount = countWords(testText);
+  const totalDuration = calculateTextDisplayDuration(testText, 0.5);
+  const wordDuration = calculateWordHighlightDuration(totalDuration, wordCount);
+  
+  return {
+    text: testText,
+    words: words,
+    wordCount: wordCount,
+    totalDuration: totalDuration,
+    wordDuration: wordDuration,
+    expectedWords: ["Men", "exist", "for", "the", "sake", "of", "one", "another."],
+    expectedWordCount: 8
+  };
 } 

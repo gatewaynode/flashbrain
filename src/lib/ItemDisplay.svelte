@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { countWords, calculateTextDisplayDuration, formatWordCount } from '$lib/utils.js';
+  import { countWords, calculateTextDisplayDuration, formatWordCount, splitTextIntoWords, calculateWordHighlightDuration } from '$lib/utils.js';
 
   // Props
   export let item = null;
@@ -20,6 +20,12 @@
   let timeoutId = null;
   let wordCount = 0;
   let calculatedTextDuration = 3000; // Default fallback
+  
+  // Word highlighting state
+  let words = [];
+  let currentWordIndex = -1;
+  let wordHighlightInterval = null;
+  let wordHighlightDuration = 0;
 
   // Animation constants
   const IMAGE_FADE_TARGET = 0.3; // 30% transparency
@@ -39,7 +45,44 @@
       console.log(`Word count: ${wordCount} (${formatWordCount(wordCount)})`);
       console.log(`Seconds per word: ${secondsPerWord}`);
       console.log(`Calculated duration: ${calculatedTextDuration}ms`);
+      
+      // Split text into words for highlighting using utility function
+      words = splitTextIntoWords(item.text);
+      wordHighlightDuration = calculateWordHighlightDuration(calculatedTextDuration, words.length);
+      console.log(`Words array:`, words);
+      console.log(`Word highlight duration: ${wordHighlightDuration}ms per word`);
     }
+  }
+
+  function startWordHighlighting() {
+    if (words.length === 0) {
+      console.log('No words to highlight');
+      return;
+    }
+    
+    console.log('Starting word highlighting sequence');
+    currentWordIndex = 0;
+    
+    wordHighlightInterval = setInterval(() => {
+      currentWordIndex++;
+      
+      if (currentWordIndex >= words.length) {
+        // Word highlighting complete
+        clearInterval(wordHighlightInterval);
+        wordHighlightInterval = null;
+        console.log('Word highlighting sequence complete');
+      } else {
+        console.log(`Highlighting word ${currentWordIndex + 1}/${words.length}: "${words[currentWordIndex]}"`);
+      }
+    }, wordHighlightDuration);
+  }
+
+  function stopWordHighlighting() {
+    if (wordHighlightInterval) {
+      clearInterval(wordHighlightInterval);
+      wordHighlightInterval = null;
+    }
+    currentWordIndex = -1;
   }
 
   function startTransition() {
@@ -71,7 +114,10 @@
         fadeInterval = null;
         isTransitioning = false;
         
-        console.log('Crossfade transition complete');
+        console.log('Crossfade transition complete, starting word highlighting');
+        
+        // Start word highlighting after crossfade completes
+        startWordHighlighting();
         
         // Wait for calculated text display time before calling completion callback
         timeoutId = setTimeout(() => {
@@ -93,11 +139,17 @@
       clearTimeout(timeoutId);
       timeoutId = null;
     }
+    if (wordHighlightInterval) {
+      clearInterval(wordHighlightInterval);
+      wordHighlightInterval = null;
+    }
     
     // Reset state
     isTransitioning = false;
     imageOpacity = 1;
     textOpacity = 0;
+    currentWordIndex = -1;
+    words = [];
   }
 
   function manualStart() {
@@ -132,6 +184,9 @@
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
+    if (wordHighlightInterval) {
+      clearInterval(wordHighlightInterval);
+    }
   });
 </script>
 
@@ -148,12 +203,24 @@
     />
   </div>
   
-  <!-- Text with refined background fade -->
+  <!-- Text with refined background fade and word highlighting -->
   <div 
     class="text-container" 
     style="opacity: {textOpacity};"
   >
-    <p class="training-text">{item?.text}</p>
+    <p class="training-text">
+      {#each words as word, index}
+        <span 
+          class="word" 
+          class:highlighted={index === currentWordIndex}
+        >
+          {word}
+        </span>
+        {#if index < words.length - 1}
+          <span class="word-separator"> </span>
+        {/if}
+      {/each}
+    </p>
   </div>
 </div>
 
@@ -198,6 +265,22 @@
     background: rgba(0,0,0,0.7);
     border-radius: 12px;
     backdrop-filter: blur(10px);
+  }
+
+  .word {
+    display: inline-block;
+    transition: all 0.2s ease;
+    font-weight: 400;
+  }
+
+  .word.highlighted {
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+  }
+
+  .word-separator {
+    white-space: pre;
   }
 
   @media (max-width: 768px) {
