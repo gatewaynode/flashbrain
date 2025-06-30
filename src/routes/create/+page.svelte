@@ -1,11 +1,146 @@
 <script>
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
+  import { invoke } from '@tauri-apps/api/core';
+  import { open } from '@tauri-apps/plugin-dialog';
 
   let isLoaded = $state(false);
+  let showCreateModal = $state(false);
+  let showEditFilePicker = $state(false);
+  let showManualPathModal = $state(false);
+  let lessonName = $state('');
+  let selectedFilePath = $state('');
+  let manualFilePath = $state('');
 
   function goBack() {
     goto('/');
+  }
+
+  function handleCreate() {
+    showCreateModal = true;
+  }
+
+  function handleEdit() {
+    showEditFilePicker = true;
+  }
+
+  function handleImport() {
+    // Stubbed out - show a placeholder message
+    alert('Import functionality coming soon!');
+  }
+
+  async function handleCreateSubmit() {
+    if (!lessonName.trim()) {
+      alert('Please enter a lesson name');
+      return;
+    }
+
+    try {
+      console.log('Creating new lesson:', lessonName);
+      // Navigate to editor with new lesson name
+      goto(`/editor?mode=create&name=${encodeURIComponent(lessonName.trim())}`);
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+      alert('Failed to create lesson. Please try again.');
+    }
+  }
+
+  async function handleFileSelect() {
+    try {
+      console.log('=== Starting file selection process ===');
+      console.log('Dialog plugin available:', typeof open);
+      console.log('Open function:', open);
+      
+      // Show loading state
+      const selectButton = document.querySelector('.modal-button.primary');
+      if (selectButton) {
+        selectButton.textContent = 'Selecting...';
+        if ('disabled' in selectButton) {
+          selectButton.disabled = true;
+        }
+      }
+      
+      console.log('Attempting to open dialog with options:', {
+        title: 'Select Training JSON File',
+        filters: [{ name: 'JSON Files', extensions: ['json'] }],
+        multiple: false
+      });
+      
+      // Use the dialog plugin's open dialog
+      const selected = await open({
+        title: 'Select Training JSON File',
+        filters: [{ name: 'JSON Files', extensions: ['json'] }],
+        multiple: false
+      });
+      
+      console.log('Dialog result:', selected);
+      console.log('Dialog result type:', typeof selected);
+      console.log('Dialog result is array:', Array.isArray(selected));
+      
+      if (selected && typeof selected === 'string') {
+        selectedFilePath = selected;
+        console.log('✅ File selected successfully:', selectedFilePath);
+        goto(`/editor?mode=edit&file=${encodeURIComponent(selectedFilePath)}`);
+      } else if (selected === null) {
+        console.log('User cancelled file selection');
+        alert('No file selected. Please try again.');
+      } else {
+        console.log('Unexpected dialog result:', selected);
+        alert('Unexpected result from file dialog. Please try manual input.');
+        showManualPathModal = true;
+      }
+    } catch (error) {
+      console.error('❌ Error in file selection:', error);
+      console.error('Error details:', String(error));
+      
+      // Show detailed error to user
+      let errorMessage = 'Failed to open file dialog. ';
+      if (error && typeof error === 'object') {
+        errorMessage += String(error);
+      } else {
+        errorMessage += 'Unknown error occurred.';
+      }
+      
+      alert(errorMessage + '\n\nFalling back to manual path input.');
+      showManualPathModal = true;
+    } finally {
+      // Reset button state
+      const selectButton = document.querySelector('.modal-button.primary');
+      if (selectButton) {
+        selectButton.textContent = 'Select File';
+        if ('disabled' in selectButton) {
+          selectButton.disabled = false;
+        }
+      }
+    }
+  }
+
+  function handleManualPathSubmit() {
+    if (!manualFilePath.trim()) {
+      alert('Please enter a file path');
+      return;
+    }
+    
+    console.log('Using manual file path:', manualFilePath);
+    selectedFilePath = manualFilePath.trim();
+    showManualPathModal = false;
+    manualFilePath = '';
+    goto(`/editor?mode=edit&file=${encodeURIComponent(selectedFilePath)}`);
+  }
+
+  function closeManualPathModal() {
+    showManualPathModal = false;
+    manualFilePath = '';
+  }
+
+  function closeCreateModal() {
+    showCreateModal = false;
+    lessonName = '';
+  }
+
+  function closeEditFilePicker() {
+    showEditFilePicker = false;
+    selectedFilePath = '';
   }
 
   onMount(() => {
@@ -41,11 +176,15 @@
           <div class="feature">⏱️ Set timing for word highlighting</div>
         </div>
         <div class="create-options">
-          <button class="create-button">
+          <button class="create-button" onclick={handleCreate}>
             <span class="button-icon">📝</span>
             <span class="button-text">Create New Lesson</span>
           </button>
-          <button class="create-button secondary">
+          <button class="create-button secondary" onclick={handleEdit}>
+            <span class="button-icon">✏️</span>
+            <span class="button-text">Edit Existing Lesson</span>
+          </button>
+          <button class="create-button secondary" onclick={handleImport}>
             <span class="button-icon">📁</span>
             <span class="button-text">Import from File</span>
           </button>
@@ -53,6 +192,69 @@
       </div>
     </div>
   </div>
+
+  <!-- Create Lesson Modal -->
+  {#if showCreateModal}
+    <div class="modal-overlay" onclick={closeCreateModal}>
+      <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+        <h3>Create New Lesson</h3>
+        <p>Enter a name for your new lesson. This will be used as the directory name.</p>
+        <div class="modal-form">
+          <input 
+            type="text" 
+            placeholder="Lesson name (e.g., 'My First Lesson')"
+            bind:value={lessonName}
+            class="modal-input"
+            onkeydown={(e) => e.key === 'Enter' && handleCreateSubmit()}
+          />
+          <div class="modal-buttons">
+            <button class="modal-button secondary" onclick={closeCreateModal}>Cancel</button>
+            <button class="modal-button primary" onclick={handleCreateSubmit}>Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Edit File Picker Modal -->
+  {#if showEditFilePicker}
+    <div class="modal-overlay" onclick={closeEditFilePicker}>
+      <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+        <h3>Edit Existing Lesson</h3>
+        <p>Select a training JSON file to edit.</p>
+        <div class="modal-form">
+          <div class="modal-buttons">
+            <button class="modal-button secondary" onclick={closeEditFilePicker}>Cancel</button>
+            <button class="modal-button primary" onclick={handleFileSelect}>Select File</button>
+            <button class="modal-button secondary" onclick={() => { console.log('Dialog plugin test:', typeof open); alert('Dialog plugin: ' + typeof open); }}>Test Dialog</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Manual Path Input Modal -->
+  {#if showManualPathModal}
+    <div class="modal-overlay" onclick={closeManualPathModal}>
+      <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+        <h3>Enter File Path</h3>
+        <p>Please enter the full file path to the training JSON file.</p>
+        <div class="modal-form">
+          <input 
+            type="text" 
+            placeholder="File path"
+            bind:value={manualFilePath}
+            class="modal-input"
+            onkeydown={(e) => e.key === 'Enter' && handleManualPathSubmit()}
+          />
+          <div class="modal-buttons">
+            <button class="modal-button secondary" onclick={closeManualPathModal}>Cancel</button>
+            <button class="modal-button primary" onclick={handleManualPathSubmit}>Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
 </main>
 
 <style>
@@ -217,6 +419,108 @@
     font-weight: 500;
   }
 
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+
+  .modal-content {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+
+  .modal-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #fff;
+  }
+
+  .modal-content p {
+    color: #aaa;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-input {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .modal-input::placeholder {
+    color: #888;
+  }
+
+  .modal-input:focus {
+    border-color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.15);
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .modal-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .modal-button.primary {
+    background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+    color: #000;
+  }
+
+  .modal-button.secondary {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .modal-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+  }
+
+  .modal-button.secondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
+  }
+
   @media (max-width: 768px) {
     .content {
       padding: 1rem;
@@ -229,6 +533,15 @@
     
     .placeholder-card {
       padding: 2rem;
+    }
+
+    .modal-content {
+      padding: 1.5rem;
+      margin: 1rem;
+    }
+
+    .modal-buttons {
+      flex-direction: column;
     }
   }
 </style> 

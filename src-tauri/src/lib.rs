@@ -131,36 +131,6 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
 }
 
 #[tauri::command]
-fn test_json_parsing() -> Result<String, String> {
-    let json_content = r#"{
-  "meta": {
-    "title": "Marcus Aurelius Quotes",
-    "date": "2025-06-29",
-    "description": "This is a test of the flashbrain app.  It is a simple app that allows you to create flashcards with images and text.  The app will then flash the image and text for a given duration and speed."
-  },
-  "items": [
-    {
-      "text": "Men exist for the sake of one another.  Teach them then or bear with them.",
-      "image": "/static/classes/test-1/test_pattern.png",
-      "actions": [
-        {
-          "type": "flash",
-          "payload": {
-            "duration": 85, "speed": 11
-          }
-        }
-      ]
-    }
-  ]
-}"#;
-
-    match serde_json::from_str::<TrainingData>(json_content) {
-        Ok(data) => Ok(format!("Successfully parsed: {}", data.meta.title)),
-        Err(e) => Err(format!("JSON parsing failed: {}", e)),
-    }
-}
-
-#[tauri::command]
 fn load_training_data(class_id: String) -> Result<TrainingData, String> {
     // Try multiple possible paths for the classes directory
     let possible_paths = vec![
@@ -213,6 +183,39 @@ fn load_training_data(class_id: String) -> Result<TrainingData, String> {
     Ok(training_data)
 }
 
+#[tauri::command]
+fn test_json_parsing() -> Result<String, String> {
+    let json_content = r#"{
+  "meta": {
+    "class_id": "test-1",
+    "title": "Marcus Aurelius Quotes",
+    "date": "2025-06-29",
+    "description": "This is a test of the flashbrain app. It is a simple app that allows you to create flashcards with images and text. The app will then flash the image and text for a given duration and speed.",
+    "seconds_per_word": 0.5
+  },
+  "items": [
+    {
+      "item_id": "1",
+      "text": "Men exist for the sake of one another. Teach them then or bear with them.",
+      "image": "/static/classes/test-1/test_pattern.png",
+      "actions": [
+        {
+          "type": "flash",
+          "payload": {
+            "duration": 85, "speed": 11
+          }
+        }
+      ]
+    }
+  ]
+}"#;
+
+    match serde_json::from_str::<TrainingData>(json_content) {
+        Ok(data) => Ok(format!("Successfully parsed: {}", data.meta.title)),
+        Err(e) => Err(format!("JSON parsing failed: {}", e)),
+    }
+}
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -223,6 +226,8 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing, load_training_data])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

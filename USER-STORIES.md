@@ -93,3 +93,25 @@ Acceptance criteria:
 * The fade is a crossfade that stops at 30% for the image and 70% for the text background.
 * The JSON retrieval and looping logic should be made as a reusable module.
 "
+
+### Story 7
+
+"As a user the create section should be where I go to add new content which is also the place to edit existing content.
+
+The options on that page should be create, edit, or import.
+
+The `create` option should open a dialogue modal for a new lesson name, which will be the directory name of the lesson in the manipulation page.
+
+The `edit`  option should open a file picker widget to get the file path for the manipulation page.
+
+The `import` option should be stubbed out but non-functional.
+
+A new editor page should be stubbed out for lesson manipulation.
+
+The settings page needs a new option for the lessons file path(a global variable) to save the lesson dirs to, by default it should be an XDG path to the documents directory under a folder called flashbrain.
+
+Acceptance criteria:
+* The options of create, edit and import have been added to the create page.
+* A editor page has been stubbed out that captures the filepath from the create and edit options,
+* The settings page now has an option for setting the global path for saving lesson dirs.
+"
