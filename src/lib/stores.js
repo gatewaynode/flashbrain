@@ -15,6 +15,7 @@ export const trainingSession = writable({
 // Global settings store
 export const globalSettings = writable({
   debugMode: false,
+  lessonsFilePath: '~/Documents/flashbrain', // Default XDG documents path
   // Add other settings here as needed
   // autoPlay: true,
   // transitionSpeed: 1000,
@@ -54,5 +55,13 @@ export function toggleDebugMode() {
   globalSettings.update(settings => ({
     ...settings,
     debugMode: !settings.debugMode
+  }));
+}
+
+// Update lessons file path
+export function updateLessonsFilePath(newPath) {
+  globalSettings.update(settings => ({
+    ...settings,
+    lessonsFilePath: newPath
   }));
 } 

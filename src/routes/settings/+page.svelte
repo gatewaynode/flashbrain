@@ -1,10 +1,13 @@
 <script>
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { globalSettings, toggleDebugMode } from '$lib/stores.js';
+  import { globalSettings, toggleDebugMode, updateLessonsFilePath } from '$lib/stores.js';
 
   let isLoaded = $state(false);
   let debugMode = $state(false);
+  let lessonsFilePath = $state('~/Documents/flashbrain');
+  let showPathInput = $state(false);
+  let tempPath = $state('');
 
   function goBack() {
     goto('/');
@@ -12,6 +15,24 @@
 
   function handleDebugToggle() {
     toggleDebugMode();
+  }
+
+  function handlePathEdit() {
+    tempPath = lessonsFilePath;
+    showPathInput = true;
+  }
+
+  function handlePathSave() {
+    if (tempPath.trim()) {
+      updateLessonsFilePath(tempPath.trim());
+      lessonsFilePath = tempPath.trim();
+      showPathInput = false;
+    }
+  }
+
+  function handlePathCancel() {
+    showPathInput = false;
+    tempPath = lessonsFilePath;
   }
 
   onMount(() => {
@@ -22,6 +43,7 @@
     // Subscribe to global settings
     const unsubscribe = globalSettings.subscribe(settings => {
       debugMode = settings.debugMode;
+      lessonsFilePath = settings.lessonsFilePath;
     });
 
     return unsubscribe;
@@ -53,6 +75,7 @@
           <div class="feature">⏱️ Timing and speed settings</div>
           <div class="feature">🔊 Audio and accessibility</div>
           <div class="feature">🐛 Debug and development tools</div>
+          <div class="feature">📁 File and storage management</div>
         </div>
         <div class="settings-grid">
           <div class="setting-item">
@@ -81,6 +104,29 @@
               onclick={handleDebugToggle}
             >
               <div class="toggle-slider"></div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">Lessons File Path</span>
+            <div class="path-display">
+              {#if showPathInput}
+                <div class="path-input-group">
+                  <input 
+                    type="text" 
+                    bind:value={tempPath}
+                    class="path-input"
+                    placeholder="Enter lessons directory path"
+                    onkeydown={(e) => e.key === 'Enter' && handlePathSave()}
+                  />
+                  <div class="path-actions">
+                    <button class="path-button save" onclick={handlePathSave}>✓</button>
+                    <button class="path-button cancel" onclick={handlePathCancel}>✕</button>
+                  </div>
+                </div>
+              {:else}
+                <span class="path-value">{lessonsFilePath}</span>
+                <button class="path-edit-button" onclick={handlePathEdit}>Edit</button>
+              {/if}
             </div>
           </div>
         </div>
@@ -270,6 +316,71 @@
 
   .setting-toggle.active:hover .toggle-slider {
     transform: translateX(26px) scale(1.1);
+  }
+
+  .path-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .path-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .path-input {
+    width: 200px;
+    padding: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    color: #fff;
+  }
+
+  .path-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .path-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .path-button:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .path-value {
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .path-edit-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .path-edit-button:hover {
+    background: rgba(255,255,255,0.1);
   }
 
   @media (max-width: 768px) {
