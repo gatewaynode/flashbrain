@@ -3,7 +3,8 @@
     "class_id": "test-1",
     "title": "Marcus Aurelius Quotes",
     "date": "2025-06-29",
-    "description": "This is a test of the flashbrain app.  It is a simple app that allows you to create flashcards with images and text.  The app will then flash the image and text for a given duration and speed."
+    "description": "This is a test of the flashbrain app.  It is a simple app that allows you to create flashcards with images and text.  The app will then flash the image and text for a given duration and speed.",
+    "seconds_per_word": 0.5
   },
   "items": [
     {
@@ -14,7 +15,7 @@
         {
           "type": "flash",
           "payload": {
-            "duration": 5,
+            "duration": 85,
             "speed": 11
           }
         }
@@ -28,7 +29,7 @@
         {
           "type": "flash",
           "payload": {
-            "duration": 8,
+            "duration": 100,
             "speed": 10
           }
         }
