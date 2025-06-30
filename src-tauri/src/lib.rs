@@ -36,7 +36,6 @@ pub struct Action {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ActionPayload {
-    pub duration: u32,
     pub speed: u32,
 }
 
@@ -89,6 +88,11 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
     };
 
     let mut learning_paths = Vec::new();
+    let mut total_directories = 0;
+    let mut directories_with_json = 0;
+    let mut directories_with_training_json = 0;
+    let mut directories_with_lesson_json = 0;
+    let mut directories_without_json = 0;
 
     // Read all directories in static/classes
     for entry in fs::read_dir(classes_dir).map_err(|e| format!("Failed to read classes directory: {}", e))? {
@@ -96,18 +100,34 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
         let path = entry.path();
         
         if path.is_dir() {
-            let dir_name = path.file_name()
+            total_directories += 1;
+            let _dir_name = path.file_name()
                 .and_then(|name| name.to_str())
                 .ok_or("Invalid directory name")?;
             
-            println!("Found directory: {}", dir_name);
+            println!("Found directory: {}", _dir_name);
             
-            // Look for training.json in this directory
-            let json_path = path.join("training.json");
+            // Look for both training.json and lesson.json in this directory
+            let training_json_path = path.join("training.json");
+            let lesson_json_path = path.join("lesson.json");
             
-            if json_path.exists() {
-                println!("Found training.json in: {}", json_path.display());
-                
+            let json_path = if training_json_path.exists() {
+                directories_with_training_json += 1;
+                directories_with_json += 1;
+                println!("Found training.json in: {}", training_json_path.display());
+                Some(training_json_path)
+            } else if lesson_json_path.exists() {
+                directories_with_lesson_json += 1;
+                directories_with_json += 1;
+                println!("Found lesson.json in: {}", lesson_json_path.display());
+                Some(lesson_json_path)
+            } else {
+                directories_without_json += 1;
+                println!("No training.json or lesson.json found in: {}", path.display());
+                None
+            };
+            
+            if let Some(json_path) = json_path {
                 let json_content = fs::read_to_string(&json_path)
                     .map_err(|e| format!("Failed to read {}: {}", json_path.display(), e))?;
                 
@@ -123,18 +143,25 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
                 println!("Successfully parsed training data for: {}", training_data.meta.title);
                 
                 learning_paths.push(LearningPath {
-                    id: dir_name.to_string(),
+                    id: _dir_name.to_string(),
                     title: training_data.meta.title,
                     date: training_data.meta.date,
                     description: training_data.meta.description,
                 });
-            } else {
-                println!("No training.json found in: {}", path.display());
             }
         }
     }
 
-    println!("Total learning paths found: {}", learning_paths.len());
+    // Comprehensive logging summary
+    println!("=== LEARNING PATHS SUMMARY ===");
+    println!("Total directories found: {}", total_directories);
+    println!("Directories with JSON files: {}", directories_with_json);
+    println!("  - Directories with training.json: {}", directories_with_training_json);
+    println!("  - Directories with lesson.json: {}", directories_with_lesson_json);
+    println!("Directories without JSON files: {}", directories_without_json);
+    println!("Total learning paths successfully loaded: {}", learning_paths.len());
+    println!("=================================");
+
     Ok(learning_paths)
 }
 
@@ -172,12 +199,19 @@ fn load_training_data(class_id: String) -> Result<TrainingData, String> {
         return Err(format!("Class directory '{}' not found", class_id));
     }
 
-    // Look for training.json in this directory
-    let json_path = class_path.join("training.json");
+    // Look for both training.json and lesson.json in this directory
+    let training_json_path = class_path.join("training.json");
+    let lesson_json_path = class_path.join("lesson.json");
     
-    if !json_path.exists() {
-        return Err(format!("training.json not found in class '{}'", class_id));
-    }
+    let json_path = if training_json_path.exists() {
+        println!("Found training.json in class '{}'", class_id);
+        training_json_path
+    } else if lesson_json_path.exists() {
+        println!("Found lesson.json in class '{}'", class_id);
+        lesson_json_path
+    } else {
+        return Err(format!("Neither training.json nor lesson.json found in class '{}'", class_id));
+    };
 
     println!("Loading training data from: {}", json_path.display());
     
@@ -222,6 +256,124 @@ fn test_json_parsing() -> Result<String, String> {
         Ok(data) => Ok(format!("Successfully parsed: {}", data.meta.title)),
         Err(e) => Err(format!("JSON parsing failed: {}", e)),
     }
+}
+
+#[tauri::command]
+fn test_lesson_discrepancy() -> Result<String, String> {
+    // Try multiple possible paths for the classes directory
+    let possible_paths = vec![
+        "static/classes",
+        "../static/classes",
+        "../../static/classes",
+        "./static/classes",
+    ];
+
+    let mut classes_dir = None;
+    
+    for path_str in &possible_paths {
+        let path = Path::new(path_str);
+        if path.exists() {
+            classes_dir = Some(path);
+            break;
+        }
+    }
+
+    let classes_dir = match classes_dir {
+        Some(dir) => dir,
+        None => {
+            return Err("Could not find static/classes directory".to_string());
+        }
+    };
+
+    let mut total_directories = 0;
+    let mut directories_with_json = 0;
+    let mut directories_with_training_json = 0;
+    let mut directories_with_lesson_json = 0;
+    let mut directories_without_json = 0;
+    let mut successful_parses = 0;
+    let mut failed_parses = 0;
+
+    // Read all directories in static/classes
+    for entry in fs::read_dir(classes_dir).map_err(|e| format!("Failed to read classes directory: {}", e))? {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+        
+        if path.is_dir() {
+            total_directories += 1;
+            let _dir_name = path.file_name()
+                .and_then(|name| name.to_str())
+                .ok_or("Invalid directory name")?;
+            
+            // Look for both training.json and lesson.json in this directory
+            let training_json_path = path.join("training.json");
+            let lesson_json_path = path.join("lesson.json");
+            
+            let json_path = if training_json_path.exists() {
+                directories_with_training_json += 1;
+                directories_with_json += 1;
+                Some(training_json_path)
+            } else if lesson_json_path.exists() {
+                directories_with_lesson_json += 1;
+                directories_with_json += 1;
+                Some(lesson_json_path)
+            } else {
+                directories_without_json += 1;
+                None
+            };
+            
+            if let Some(json_path) = json_path {
+                match fs::read_to_string(&json_path) {
+                    Ok(json_content) => {
+                        match serde_json::from_str::<TrainingData>(&json_content) {
+                            Ok(_) => {
+                                successful_parses += 1;
+                            }
+                            Err(e) => {
+                                failed_parses += 1;
+                                println!("Failed to parse JSON in {}: {}", json_path.display(), e);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        println!("Failed to read {}: {}", json_path.display(), e);
+                    }
+                }
+            }
+        }
+    }
+
+    // Create detailed report
+    let report = format!(
+        "=== LESSON DISCREPANCY TEST REPORT ===\n\
+         Total directories found: {}\n\
+         Directories with JSON files: {}\n\
+           - Directories with training.json: {}\n\
+           - Directories with lesson.json: {}\n\
+         Directories without JSON files: {}\n\
+         Successful JSON parses: {}\n\
+         Failed JSON parses: {}\n\
+         Expected lessons (directories with JSON): {}\n\
+         Actual lessons (successful parses): {}\n\
+         Discrepancy: {}\n\
+         ======================================",
+        total_directories,
+        directories_with_json,
+        directories_with_training_json,
+        directories_with_lesson_json,
+        directories_without_json,
+        successful_parses,
+        failed_parses,
+        directories_with_json,
+        successful_parses,
+        if successful_parses == directories_with_json {
+            "None - All JSON files parse successfully".to_string()
+        } else {
+            format!("{} lessons missing or have parsing errors", directories_with_json - successful_parses)
+        }
+    );
+
+    println!("{}", report);
+    Ok(report)
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -302,7 +454,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing, load_training_data, open_file_dialog, save_file_dialog])
+        .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing, load_training_data, open_file_dialog, save_file_dialog, test_lesson_discrepancy])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

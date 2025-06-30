@@ -15,8 +15,7 @@
         {
           "type": "flash",
           "payload": {
-            "duration": 85,
-            "speed": 11
+            "speed": 10
           }
         }
       ]
@@ -29,7 +28,6 @@
         {
           "type": "flash",
           "payload": {
-            "duration": 100,
             "speed": 10
           }
         }
