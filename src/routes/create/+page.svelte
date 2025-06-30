@@ -2,7 +2,6 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
-  import { open } from '@tauri-apps/plugin-dialog';
 
   let isLoaded = $state(false);
   let showCreateModal = $state(false);
@@ -25,8 +24,8 @@
   }
 
   function handleImport() {
-    // Stubbed out - show a placeholder message
-    alert('Import functionality coming soon!');
+    // Use the new Rust file dialog for import
+    handleImportFile();
   }
 
   async function handleCreateSubmit() {
@@ -47,9 +46,7 @@
 
   async function handleFileSelect() {
     try {
-      console.log('=== Starting file selection process ===');
-      console.log('Dialog plugin available:', typeof open);
-      console.log('Open function:', open);
+      console.log('=== Starting file selection process with Rust RFD ===');
       
       // Show loading state
       const selectButton = document.querySelector('.modal-button.primary');
@@ -60,34 +57,30 @@
         }
       }
       
-      console.log('Attempting to open dialog with options:', {
+      console.log('Invoking Rust file dialog with options:', {
         title: 'Select Training JSON File',
-        filters: [{ name: 'JSON Files', extensions: ['json'] }],
-        multiple: false
+        filters: [['JSON Files', ['json']]]
       });
       
-      // Use the dialog plugin's open dialog
-      const selected = await open({
+      // Use the Rust RFD file dialog
+      const result = await invoke('open_file_dialog', {
         title: 'Select Training JSON File',
-        filters: [{ name: 'JSON Files', extensions: ['json'] }],
-        multiple: false
+        filters: [['JSON Files', ['json']]]
       });
       
-      console.log('Dialog result:', selected);
-      console.log('Dialog result type:', typeof selected);
-      console.log('Dialog result is array:', Array.isArray(selected));
+      console.log('Rust file dialog result:', result);
       
-      if (selected && typeof selected === 'string') {
-        selectedFilePath = selected;
+      if (result.success && result.file_path) {
+        selectedFilePath = result.file_path;
         console.log('✅ File selected successfully:', selectedFilePath);
         goto(`/editor?mode=edit&file=${encodeURIComponent(selectedFilePath)}`);
-      } else if (selected === null) {
-        console.log('User cancelled file selection');
-        alert('No file selected. Please try again.');
       } else {
-        console.log('Unexpected dialog result:', selected);
-        alert('Unexpected result from file dialog. Please try manual input.');
-        showManualPathModal = true;
+        console.log('File dialog cancelled or failed:', result.error);
+        if (result.error && result.error !== 'Dialog was cancelled') {
+          alert(`File dialog error: ${result.error}`);
+        } else {
+          console.log('User cancelled file selection');
+        }
       }
     } catch (error) {
       console.error('❌ Error in file selection:', error);
@@ -110,6 +103,69 @@
         selectButton.textContent = 'Select File';
         if ('disabled' in selectButton) {
           selectButton.disabled = false;
+        }
+      }
+    }
+  }
+
+  async function handleImportFile() {
+    try {
+      console.log('=== Starting import file selection process with Rust RFD ===');
+      
+      // Show loading state
+      const importButton = document.querySelector('.modal-button.primary');
+      if (importButton) {
+        importButton.textContent = 'Selecting...';
+        if ('disabled' in importButton) {
+          importButton.disabled = true;
+        }
+      }
+      
+      console.log('Invoking Rust file dialog for import with options:', {
+        title: 'Import Training JSON File',
+        filters: [['JSON Files', ['json']]]
+      });
+      
+      // Use the Rust RFD file dialog for import
+      const result = await invoke('open_file_dialog', {
+        title: 'Import Training JSON File',
+        filters: [['JSON Files', ['json']]]
+      });
+      
+      console.log('Rust import file dialog result:', result);
+      
+      if (result.success && result.file_path) {
+        selectedFilePath = result.file_path;
+        console.log('✅ Import file selected successfully:', selectedFilePath);
+        goto(`/editor?mode=import&file=${encodeURIComponent(selectedFilePath)}`);
+      } else {
+        console.log('Import file dialog cancelled or failed:', result.error);
+        if (result.error && result.error !== 'Dialog was cancelled') {
+          alert(`Import file dialog error: ${result.error}`);
+        } else {
+          console.log('User cancelled import file selection');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error in import file selection:', error);
+      console.error('Error details:', String(error));
+      
+      // Show detailed error to user
+      let errorMessage = 'Failed to open import file dialog. ';
+      if (error && typeof error === 'object') {
+        errorMessage += String(error);
+      } else {
+        errorMessage += 'Unknown error occurred.';
+      }
+      
+      alert(errorMessage);
+    } finally {
+      // Reset button state
+      const importButton = document.querySelector('.modal-button.primary');
+      if (importButton) {
+        importButton.textContent = 'Select File';
+        if ('disabled' in importButton) {
+          importButton.disabled = false;
         }
       }
     }

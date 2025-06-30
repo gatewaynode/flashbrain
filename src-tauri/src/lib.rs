@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 use std::env;
+use rfd::FileDialog;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
@@ -45,6 +46,13 @@ pub struct LearningPath {
     pub title: String,
     pub date: String,
     pub description: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FileDialogResult {
+    pub success: bool,
+    pub file_path: Option<String>,
+    pub error: Option<String>,
 }
 
 #[tauri::command]
@@ -222,13 +230,111 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+#[tauri::command]
+fn open_file_dialog(title: String, filters: Vec<(String, Vec<String>)>) -> FileDialogResult {
+    println!("Opening file dialog with title: {}", title);
+    
+    let mut dialog = FileDialog::new()
+        .set_title(&title);
+    
+    // Add filters if provided
+    for (name, extensions) in filters {
+        dialog = dialog.add_filter(&name, &extensions);
+    }
+    
+    match dialog.pick_file() {
+        Some(path) => {
+            let file_path = path.to_string_lossy().to_string();
+            println!("File selected: {}", file_path);
+            FileDialogResult {
+                success: true,
+                file_path: Some(file_path),
+                error: None,
+            }
+        }
+        None => {
+            println!("File dialog was cancelled");
+            FileDialogResult {
+                success: false,
+                file_path: None,
+                error: Some("Dialog was cancelled".to_string()),
+            }
+        }
+    }
+}
+
+#[tauri::command]
+fn save_file_dialog(title: String, filters: Vec<(String, Vec<String>)>) -> FileDialogResult {
+    println!("Opening save file dialog with title: {}", title);
+    
+    let mut dialog = FileDialog::new()
+        .set_title(&title);
+    
+    // Add filters if provided
+    for (name, extensions) in filters {
+        dialog = dialog.add_filter(&name, &extensions);
+    }
+    
+    match dialog.save_file() {
+        Some(path) => {
+            let file_path = path.to_string_lossy().to_string();
+            println!("Save file selected: {}", file_path);
+            FileDialogResult {
+                success: true,
+                file_path: Some(file_path),
+                error: None,
+            }
+        }
+        None => {
+            println!("Save file dialog was cancelled");
+            FileDialogResult {
+                success: false,
+                file_path: None,
+                error: Some("Dialog was cancelled".to_string()),
+            }
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing, load_training_data])
+        .invoke_handler(tauri::generate_handler![greet, get_learning_paths, test_json_parsing, load_training_data, open_file_dialog, save_file_dialog])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_file_dialog_result_serialization() {
+        let result = FileDialogResult {
+            success: true,
+            file_path: Some("/path/to/file.json".to_string()),
+            error: None,
+        };
+        
+        let json = serde_json::to_string(&result).unwrap();
+        assert!(json.contains("success"));
+        assert!(json.contains("file_path"));
+        assert!(json.contains("/path/to/file.json"));
+    }
+
+    #[test]
+    fn test_file_dialog_result_cancelled() {
+        let result = FileDialogResult {
+            success: false,
+            file_path: None,
+            error: Some("Dialog was cancelled".to_string()),
+        };
+        
+        let json = serde_json::to_string(&result).unwrap();
+        assert!(json.contains("success"));
+        assert!(json.contains("Dialog was cancelled"));
+    }
 }
