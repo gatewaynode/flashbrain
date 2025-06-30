@@ -115,3 +115,25 @@ Acceptance criteria:
 * A editor page has been stubbed out that captures the filepath from the create and edit options,
 * The settings page now has an option for setting the global path for saving lesson dirs.
 "
+
+### Story 8
+
+"As a user I should see the appropriate file dialogues appear on MacOS.  
+
+Use the example code at https://github.com/gatewaynode/file-dialogue-popper to see how this can be done with the RFD crate on the Rust side of the app.
+
+Change the 'create-->edit existing lesson' and 'create-->import from file' to use Rust with the RFD crate to open the file dialogues and return JSON even if the dialogue modals are cancelled similarly to 'file-dialogue-popper'.
+
+Acceptance criteria:
+
+* The edit and import functions under 'Create' open OS file dialogues.
+* The operation always returns JSON results that are logged server side.
+
+**COMPLETED**: 
+- Added RFD crate dependency to Cargo.toml
+- Implemented open_file_dialog and save_file_dialog Tauri commands
+- Updated frontend to use Rust file dialogues instead of Tauri dialog plugin
+- Added comprehensive error handling and JSON result logging
+- Created unit tests for file dialogue functionality
+- Added documentation in FILE_DIALOGUE_IMPLEMENTATION.md
+"
