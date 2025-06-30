@@ -9,6 +9,7 @@ pub struct Meta {
     pub title: String,
     pub date: String,
     pub description: String,
+    pub seconds_per_word: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

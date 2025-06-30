@@ -2,30 +2,18 @@
   import { goto } from '$app/navigation';
   import { onMount, onDestroy } from 'svelte';
   import { currentTrainingData, trainingSession, resetTrainingSession, globalSettings } from '$lib/stores.js';
+  import ItemDisplay from '$lib/ItemDisplay.svelte';
+  import { countWords, formatWordCount } from '$lib/utils.js';
 
   let isLoaded = $state(false);
   let currentItem = $state(null);
   let currentItemIndex = $state(0);
-  let imageOpacity = $state(1);
-  let textOpacity = $state(0);
-  let isTransitioning = $state(false);
   let trainingData = $state(null);
   let debugMode = $state(false);
-  let intervalId = null;
-  let fadeInterval = null;
+  let secondsPerWord = $state(0.5); // Default value
 
   function goBack() {
     console.log('Back button clicked - stopping training session');
-    
-    // Clear any active intervals
-    if (fadeInterval) {
-      clearInterval(fadeInterval);
-      fadeInterval = null;
-    }
-    if (intervalId) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
     
     // Reset training session
     resetTrainingSession();
@@ -35,41 +23,9 @@
     goto('/new');
   }
 
-  function startTransition() {
-    if (isTransitioning) {
-      console.log('Transition already in progress, skipping');
-      return;
-    }
-    
-    console.log('Starting transition for item index:', currentItemIndex);
-    isTransitioning = true;
-    
-    // Fade out image and fade in text
-    const duration = 1000; // 1 second
-    const steps = 60; // 60 steps for smooth animation
-    const stepDuration = duration / steps;
-    const opacityStep = 1 / steps;
-    
-    let step = 0;
-    
-    fadeInterval = setInterval(() => {
-      step++;
-      imageOpacity = 1 - (step * opacityStep);
-      textOpacity = step * opacityStep;
-      
-      if (step >= steps) {
-        clearInterval(fadeInterval);
-        fadeInterval = null;
-        isTransitioning = false;
-        
-        console.log('Transition complete, waiting 3 seconds before next item');
-        
-        // Wait 3 seconds before moving to next item
-        setTimeout(() => {
-          nextItem();
-        }, 3000);
-      }
-    }, stepDuration);
+  function handleTransitionComplete() {
+    console.log('Item transition complete, moving to next item');
+    nextItem();
   }
 
   function nextItem() {
@@ -97,10 +53,6 @@
     currentItem = trainingData.items[nextIndex];
     console.log('Current item updated:', currentItem?.item_id, currentItem?.text?.substring(0, 50) + '...');
     
-    // Reset opacity
-    imageOpacity = 1;
-    textOpacity = 0;
-    
     // Update session state
     trainingSession.update(s => ({
       ...s,
@@ -108,12 +60,6 @@
       isImageVisible: true,
       isTextVisible: false
     }));
-    
-    // Start transition after 2 seconds
-    console.log('Starting transition in 2 seconds');
-    setTimeout(() => {
-      startTransition();
-    }, 2000);
   }
 
   onMount(() => {
@@ -136,14 +82,11 @@
         trainingData = data;
         currentItem = data.items[0];
         currentItemIndex = 0;
+        secondsPerWord = data.meta.seconds_per_word || 0.5;
         
         console.log('Training session started with', data.items.length, 'items');
+        console.log('Seconds per word:', secondsPerWord);
         console.log('First item:', currentItem?.item_id, currentItem?.text?.substring(0, 50) + '...');
-        
-        // Start the first transition after 2 seconds
-        setTimeout(() => {
-          startTransition();
-        }, 2000);
       } else {
         console.error('No valid training data received');
         alert('No training data available. Please try again.');
@@ -158,13 +101,7 @@
   });
 
   onDestroy(() => {
-    console.log('Training page destroyed - cleaning up intervals');
-    if (fadeInterval) {
-      clearInterval(fadeInterval);
-    }
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
+    console.log('Training page destroyed');
   });
 </script>
 
@@ -185,35 +122,21 @@
 
     <div class="training-container">
       {#if currentItem}
-        <div class="item-display">
-          <!-- Image -->
-          <div 
-            class="image-container" 
-            style="opacity: {imageOpacity};"
-          >
-            <img 
-              src={currentItem.image} 
-              alt="Training image"
-              class="training-image"
-            />
-          </div>
-          
-          <!-- Text -->
-          <div 
-            class="text-container" 
-            style="opacity: {textOpacity};"
-          >
-            <p class="training-text">{currentItem.text}</p>
-          </div>
-        </div>
+        <ItemDisplay 
+          item={currentItem}
+          onTransitionComplete={handleTransitionComplete}
+          autoStart={true}
+          secondsPerWord={secondsPerWord}
+        />
         
         <!-- Debug info - only show when debug mode is enabled -->
         {#if debugMode}
           <div class="debug-info">
             <p>Item {currentItemIndex + 1} of {trainingData?.items?.length || 0}</p>
             <p>Item ID: {currentItem.item_id}</p>
-            <p>Image opacity: {imageOpacity.toFixed(2)} | Text opacity: {textOpacity.toFixed(2)}</p>
-            <p>Transitioning: {isTransitioning}</p>
+            <p>Word count: {formatWordCount(countWords(currentItem.text))}</p>
+            <p>Seconds per word: {secondsPerWord}</p>
+            <p>Debug mode: Enabled</p>
             <button class="debug-button" onclick={nextItem}>Manual Next Item</button>
           </div>
         {/if}
@@ -225,6 +148,7 @@
           <p>Items count: {trainingData?.items?.length || 0}</p>
           {#if debugMode}
             <p>Debug mode: Enabled</p>
+            <p>Seconds per word: {secondsPerWord}</p>
           {/if}
         </div>
       {/if}
@@ -309,48 +233,6 @@
     position: relative;
   }
 
-  .item-display {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
-    height: 500px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .image-container, .text-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.1s ease;
-  }
-
-  .training-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border-radius: 12px;
-  }
-
-  .training-text {
-    font-size: clamp(1.2rem, 3vw, 2rem);
-    line-height: 1.6;
-    color: #fff;
-    text-align: center;
-    max-width: 90%;
-    font-weight: 400;
-    padding: 2rem;
-    background: rgba(0,0,0,0.7);
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-  }
-
   .loading-state {
     text-align: center;
     color: #aaa;
@@ -412,15 +294,6 @@
     .back-button {
       top: 1rem;
       left: 1rem;
-    }
-    
-    .item-display {
-      height: 400px;
-    }
-    
-    .training-text {
-      font-size: 1.1rem;
-      padding: 1.5rem;
     }
   }
 </style> 

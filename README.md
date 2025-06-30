@@ -43,7 +43,8 @@ A desktop application that visually introduces learners to content by first show
     "class_id": "test-1",
     "title": "Marcus Aurelius Quotes",
     "date": "2025-06-29",
-    "description": "This is a test of the flashbrain app. It is a simple app that allows you to create flashcards with images and text. The app will then flash the image and text for a given duration and speed."
+    "description": "This is a test of the flashbrain app. It is a simple app that allows you to create flashcards with images and text. The app will then flash the image and text for a given duration and speed.",
+    "seconds_per_word": 0.5
   },
   "items": [
     {
@@ -85,6 +86,7 @@ A desktop application that visually introduces learners to content by first show
 - `title`: Display name for the learning session
 - `date`: Creation or last modified date (YYYY-MM-DD format)
 - `description`: Detailed description of the learning content
+- `seconds_per_word`: Time in seconds to display each word of text (e.g., 0.5 = half a second per word)
 
 #### Items Array
 Each item represents a single learning card:
@@ -224,8 +226,8 @@ static/classes/
 
 ```bash
 
-john@Johns-Mac-Studio code % tauri-make flashbrain
-✔ Identifier · com.john.flashbrain
+% tauri-make flashbrain
+✔ Identifier · com.----.flashbrain
 ✔ Choose which language to use for your frontend · TypeScript / JavaScript - (pnpm, yarn, npm, deno, bun)
 ✔ Choose your package manager · bun
 ✔ Choose your UI template · Svelte - (https://svelte.dev/)
