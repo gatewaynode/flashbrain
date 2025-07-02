@@ -34,19 +34,16 @@
       const result = await invoke('open_file_dialog', {
         title: 'Select Image File',
         filters: [
-          {
-            name: 'Image Files',
-            extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']
-          }
+          ['Image Files', ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']]
         ]
       });
       
       console.log('Image file dialog result:', result);
       
-      if (result.success && result.filePath) {
+      if (result.success && result.file_path) {
         // Update the image path in the item
-        handleInputChange('image', result.filePath);
-        console.log('Updated image path to:', result.filePath);
+        handleInputChange('image', result.file_path);
+        console.log('Updated image path to:', result.file_path);
       }
     } catch (error) {
       console.error('Failed to open image file dialog:', error);

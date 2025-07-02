@@ -299,10 +299,11 @@
             fitView
             colorMode="system"
             class="flow-canvas"
+            proOptions={{ hideAttribution: true }}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           >
             <Background />
             <Controls />
-            <MiniMap />
           </SvelteFlow>
         </div>
       {/if}
