@@ -4,18 +4,18 @@
     "title": "Google Prompt Framework TCREI",
     "date": "2025-06-30",
     "description": "Detailed instructions on the TCREI framework for prompt engineering.",
-    "seconds_per_word": 0.7
+    "seconds_per_word": 0.2
   },
   "items": [
     {
       "item_id": "T",
       "text": "Topic: Clearly identify the subject area. Example: 'Quantum computing basics.'",
-      "image": "lesson_image.png",
+      "image": "/classes/tcrei_lesson_package/topic.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -23,12 +23,12 @@
     {
       "item_id": "C",
       "text": "Context: Offer background information or relevant details. Example: 'Audience has high-school level physics knowledge.'",
-      "image": "lesson_image.png",
+      "image": "/classes/tcrei_lesson_package/context.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -36,12 +36,12 @@
     {
       "item_id": "R",
       "text": "Request: State exactly what is to be generated. Example: 'Summarize key principles in bullet points.'",
-      "image": "lesson_image.png",
+      "image": "/classes/tcrei_lesson_package/references.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -49,12 +49,12 @@
     {
       "item_id": "E",
       "text": "Examples: Provide sample outputs if possible. Example: 'Use examples like superposition and entanglement.'",
-      "image": "lesson_image.png",
+      "image": "/classes/tcrei_lesson_package/evaluate.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -62,12 +62,12 @@
     {
       "item_id": "I",
       "text": "Instructions: Add style or format rules. Example: 'Keep it under 200 words, use plain language.'",
-      "image": "lesson_image.png",
+      "image": "/classes/tcrei_lesson_package/iterate.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]

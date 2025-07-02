@@ -4,18 +4,18 @@
     "title": "Google Prompt Framework RSTI",
     "date": "2025-06-30",
     "description": "Detailed instructions on the RSTI framework for prompt engineering.",
-    "seconds_per_word": 0.7
+    "seconds_per_word": 0.2
   },
   "items": [
     {
       "item_id": "R",
       "text": "Role: Clearly define who or what the assistant is supposed to be. Example: 'You are a friendly math tutor.'",
-      "image": "/classes/rsti_lesson_package/lesson_image.png",
+      "image": "/classes/rsti_lesson_package/role.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -23,12 +23,12 @@
     {
       "item_id": "S",
       "text": "Scenario: Provide the situation or context. Example: 'Helping a student prepare for algebra exams.'",
-      "image": "/classes/rsti_lesson_package/lesson_image.png",
+      "image": "/classes/rsti_lesson_package/scenario.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -36,12 +36,12 @@
     {
       "item_id": "T",
       "text": "Task: Specify the task you want completed. Example: 'Create 5 practice problems with solutions.'",
-      "image": "/classes/rsti_lesson_package/lesson_image.png",
+      "image": "/classes/rsti_lesson_package/task.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]
@@ -49,12 +49,12 @@
     {
       "item_id": "I",
       "text": "Instructions: Give any formatting or style constraints. Example: 'Present in JSON format, concise explanations.'",
-      "image": "/classes/rsti_lesson_package/lesson_image.png",
+      "image": "/classes/rsti_lesson_package/instructions.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 8
+            "speed": 2
           }
         }
       ]

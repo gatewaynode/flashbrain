@@ -157,9 +157,52 @@ Acceptance criteria:
 - **UPDATED**: Removed font size increase to prevent layout jitter, keeping only bold font weight
 "
 
-## Code Cleanup
+### Story 10
 
-### Duration Field Removal
+"As a user opening a file to edit should take me to the visual editor pane with the file parsed into nodes starting with the metadata node and each item from the list in it's own node.  The fields from the file should be visible in the nodes and each is an editable field.  The image path should be a text field with an icon to open the file dialogue to pick an image from a the OS file dialogue if I don't know the path.
+
+- Use Svelte-Flow for the editor nodes from https://svelteflow.dev/
+- The metadata section must be the parent node
+- The first item node is a child of the metadata section node
+- All subsequent items are children of the previous item
+- A mock tools panel is on the left hand sidebar of the editor
+- Standard menu options are mocked in the top bar of the editor pane
+
+Acceptance criteria:
+
+* Opening a file for edit opens the editor page with JSON loaded in Svelteflow nodes
+* The fields are all exposed as editable
+* The image field contains an icon to open the OS file dialogue
+* Other tool and menu options are mocked out
+
+**COMPLETED**:
+- Installed @xyflow/svelte package for Svelte-Flow integration
+- Created MetaNode.svelte component for metadata editing with all fields (class_id, title, date, description, seconds_per_word)
+- Created ItemNode.svelte component for item editing with all fields (item_id, text, image path, speed)
+- Implemented visual editor page with Svelte-Flow canvas, background, controls, and minimap
+- Added proper node hierarchy: metadata as parent, items as children connected sequentially
+- Created left sidebar tools panel with mock buttons (Add Item, Delete Item, Duplicate Item, Import Image, Export JSON)
+- Added top menu bar with mock menu options (File, Edit, View, Help, Save)
+- Implemented JSON loading from file path with error handling and loading states
+- Added image file dialog button (📁) in item nodes for future OS file dialogue integration
+- All form fields are editable with proper event handling and data updates
+- Added comprehensive styling matching the app's dark theme with glassmorphism effects
+- Verified successful build and integration with existing Tauri backend
+- **UPDATED**: Increased app window size (width: 1600px, height: 1224px) for better editor experience
+- **UPDATED**: Changed editor canvas background to pure black for better contrast
+- **UPDATED**: Fixed node spacing with 300px vertical distance between nodes for better readability
+- **UPDATED**: Improved node positioning with metadata at x:400, y:100 and items starting at y:350
+- **UPDATED**: Fixed edge connections by adding proper source/target handles to MetaNode and ItemNode components
+- **UPDATED**: Added comprehensive logging and error handling for edge creation debugging
+- **UPDATED**: Added Handle components with unique IDs for proper React Flow edge connections
+- **UPDATED**: Added onError callback to SvelteFlow for better error reporting and debugging
+- **UPDATED**: Created CustomEdge.svelte component with bright red (#ff0000), animated, and thicker (4px) styling
+- **UPDATED**: Added animated dash pattern (10,5) with continuous animation for better visual flow
+- **UPDATED**: Registered custom edge type in SvelteFlow for enhanced edge visibility and user experience
+
+#### Code Cleanup
+
+##### Duration Field Removal
 
 Removed the unused `duration` field from the training JSON schema and associated code.
 
@@ -170,7 +213,7 @@ Removed the unused `duration` field from the training JSON schema and associated
 - Verified both frontend and backend build successfully
 - The `seconds_per_word` field in meta section is used for word highlighting timing
 
-### Lesson Detection Enhancement
+##### Lesson Detection Enhancement
 
 Enhanced the lesson detection system to support both `training.json` and `lesson.json` file formats and added comprehensive testing.
 
@@ -189,3 +232,36 @@ Enhanced the lesson detection system to support both `training.json` and `lesson
   - Expected vs actual lesson counts
 - Verified all 3 lessons now appear in the New Session page
 - **UPDATED**: Hidden test UI behind debug flag from settings page for cleaner production interface
+
+### Story 10
+
+"As a user opening a file to edit should take me to the visual editor pane with the file parsed into nodes starting with the metadata node and each item from the list in it's own node.  The fields from the file should be visible in the nodes and each is an editable field.  The image path should be a text field with an icon to open the file dialogue to pick an image from a the OS file dialogue if I don't know the path.
+
+- Use Svelte-Flow for the editor nodes from https://svelteflow.dev/
+- The metadata section must be the parent node
+- The first item node is a child of the metadata section node
+- All subsequent items are children of the previous item
+- A mock tools panel is on the left hand sidebar of the editor
+- Standard menu options are mocked in the top bar of the editor pane
+
+Acceptance criteria:
+
+* Opening a file for edit opens the editor page with JSON loaded in Svelteflow nodes
+* The fields are all exposed as editable
+* The image field contains an icon to open the OS file dialogue
+* Other tool and menu options are mocked out
+
+**COMPLETED**:
+- Installed @xyflow/svelte package for Svelte-Flow integration
+- Created MetaNode.svelte component for metadata editing with all fields (class_id, title, date, description, seconds_per_word)
+- Created ItemNode.svelte component for item editing with all fields (item_id, text, image path, speed)
+- Implemented visual editor page with Svelte-Flow canvas, background, controls, and minimap
+- Added proper node hierarchy: metadata as parent, items as children connected sequentially
+- Created left sidebar tools panel with mock buttons (Add Item, Delete Item, Duplicate Item, Import Image, Export JSON)
+- Added top menu bar with mock menu options (File, Edit, View, Help, Save)
+- Implemented JSON loading from file path with error handling and loading states
+- Added image file dialog button (📁) in item nodes for future OS file dialogue integration
+- All form fields are editable with proper event handling and data updates
+- Added comprehensive styling matching the app's dark theme with glassmorphism effects
+- Verified successful build and integration with existing Tauri backend
+"
