@@ -4,6 +4,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
+  import dagre from 'dagre';
   import MetaNode from '$lib/MetaNode.svelte';
   import ItemNode from '$lib/ItemNode.svelte';
   import CustomEdge from '$lib/CustomEdge.svelte';
@@ -31,6 +32,41 @@
     goto('/create');
   }
 
+  // Dagre layout function
+  function applyDagreLayout() {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 100 });
+
+    // Set node dimensions
+    nodes.forEach((node) => {
+      dagreGraph.setNode(node.id, { width: 250, height: 120 });
+    });
+
+    // Set edges
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    // Calculate layout
+    dagre.layout(dagreGraph);
+
+    // Apply new positions
+    const newNodes = nodes.map((node) => {
+      const nodeWithPosition = dagreGraph.node(node.id);
+      return {
+        ...node,
+        position: {
+          x: nodeWithPosition.x - nodeWithPosition.width / 2,
+          y: nodeWithPosition.y - nodeWithPosition.height / 2
+        }
+      };
+    });
+
+    nodes = newNodes;
+    console.log('Applied Dagre layout to', newNodes.length, 'nodes');
+  }
+
   async function loadLessonData() {
     if (!filePath) return;
     
@@ -49,6 +85,11 @@
       
       // Convert lesson data to Svelte-Flow nodes
       createNodesFromData(data);
+      
+      // Apply automatic layout after nodes are created
+      setTimeout(() => {
+        applyDagreLayout();
+      }, 100);
     } catch (err) {
       console.error('Failed to load lesson data:', err);
       error = err?.message || err?.toString() || 'Failed to load lesson data';
@@ -76,12 +117,12 @@
     newNodes.push(metaNode);
     console.log('Created meta node:', metaNode);
     
-    // Create item nodes (children) with better spacing
+    // Create item nodes (children)
     data.items.forEach((item, index) => {
       const itemNode = {
         id: `item-${item.item_id}`,
         type: 'itemNode',
-        position: { x: 400, y: 350 + (index * 300) }, // Increased spacing from 150 to 300
+        position: { x: 400, y: 350 + (index * 300) },
         data: {
           label: `Item ${item.item_id}`,
           item: item
@@ -139,12 +180,6 @@
     nodes = nodes.map(node => 
       node.id === id ? { ...node, data } : node
     );
-  }
-
-  function handleImageSelect(event) {
-    const { itemId } = event.detail;
-    console.log('Opening image selector for item:', itemId);
-    // TODO: Implement file dialog for image selection
   }
 
   function handleFlowError(error) {
@@ -215,6 +250,7 @@
         <button class="tool-button">Duplicate Item</button>
       </div>
       <div class="tool-group">
+        <button class="tool-button" onclick={applyDagreLayout}>Auto Layout</button>
         <button class="tool-button">Import Image</button>
         <button class="tool-button">Export JSON</button>
       </div>
@@ -259,15 +295,15 @@
             {nodeTypes}
             {edgeTypes}
             on:nodeUpdate={handleNodeUpdate}
-            on:imageSelect={handleImageSelect}
             on:error={handleFlowError}
             fitView
             colorMode="system"
             class="flow-canvas"
+            proOptions={{ hideAttribution: true }}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           >
             <Background />
             <Controls />
-            <MiniMap />
           </SvelteFlow>
         </div>
       {/if}

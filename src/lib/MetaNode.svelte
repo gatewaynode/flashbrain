@@ -2,17 +2,23 @@
   import { createEventDispatcher } from 'svelte';
   import { Handle, Position } from '@xyflow/svelte';
   
-  export let data;
+  const { data } = $props();
   
   const dispatch = createEventDispatcher();
+  
+  let isExpanded = $state(false);
   
   function handleInputChange(field, value) {
     const updatedMeta = { ...data.meta, [field]: value };
     dispatch('update', { ...data, meta: updatedMeta });
   }
+  
+  function toggleExpand() {
+    isExpanded = !isExpanded;
+  }
 </script>
 
-<div class="meta-node">
+<div class="meta-node" class:collapsed={!isExpanded}>
   <Handle 
     type="target" 
     position={Position.Top} 
@@ -21,50 +27,61 @@
   />
   
   <div class="node-header">
-    <h4>{data.label}</h4>
-  </div>
-  <div class="node-content">
-    <div class="field-group">
-      <label>Class ID:</label>
-      <input 
-        type="text" 
-        value={data.meta.class_id} 
-        on:input={(e) => handleInputChange('class_id', e.target.value)}
-      />
+    <div class="header-content">
+      <h4>{data.label}</h4>
+      <button class="expand-button" on:click={toggleExpand}>
+        {isExpanded ? '▼' : '▶'}
+      </button>
     </div>
-    <div class="field-group">
-      <label>Title:</label>
-      <input 
-        type="text" 
-        value={data.meta.title} 
-        on:input={(e) => handleInputChange('title', e.target.value)}
-      />
-    </div>
-    <div class="field-group">
-      <label>Date:</label>
-      <input 
-        type="date" 
-        value={data.meta.date} 
-        on:input={(e) => handleInputChange('date', e.target.value)}
-      />
-    </div>
-    <div class="field-group">
-      <label>Description:</label>
-      <textarea 
-        value={data.meta.description} 
-        on:input={(e) => handleInputChange('description', e.target.value)}
-      ></textarea>
-    </div>
-    <div class="field-group">
-      <label>Seconds per Word:</label>
-      <input 
-        type="number" 
-        step="0.1" 
-        value={data.meta.seconds_per_word} 
-        on:input={(e) => handleInputChange('seconds_per_word', parseFloat(e.target.value))}
-      />
+    <div class="collapsed-info">
+      <span class="item-id">{data.meta.class_id}</span>
     </div>
   </div>
+  
+  {#if isExpanded}
+    <div class="node-content">
+      <div class="field-group">
+        <label>Class ID:</label>
+        <input 
+          type="text" 
+          value={data.meta.class_id} 
+          on:input={(e) => handleInputChange('class_id', e.target.value)}
+        />
+      </div>
+      <div class="field-group">
+        <label>Title:</label>
+        <input 
+          type="text" 
+          value={data.meta.title} 
+          on:input={(e) => handleInputChange('title', e.target.value)}
+        />
+      </div>
+      <div class="field-group">
+        <label>Date:</label>
+        <input 
+          type="date" 
+          value={data.meta.date} 
+          on:input={(e) => handleInputChange('date', e.target.value)}
+        />
+      </div>
+      <div class="field-group">
+        <label>Description:</label>
+        <textarea 
+          value={data.meta.description} 
+          on:input={(e) => handleInputChange('description', e.target.value)}
+        ></textarea>
+      </div>
+      <div class="field-group">
+        <label>Seconds per Word:</label>
+        <input 
+          type="number" 
+          step="0.1" 
+          value={data.meta.seconds_per_word} 
+          on:input={(e) => handleInputChange('seconds_per_word', parseFloat(e.target.value))}
+        />
+      </div>
+    </div>
+  {/if}
   
   <Handle 
     type="source" 
@@ -82,12 +99,55 @@
     padding: 1rem;
     min-width: 250px;
     backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .meta-node.collapsed {
+    min-width: 200px;
+    padding: 0.75rem;
+  }
+
+  .node-header {
+    margin-bottom: 1rem;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
   }
 
   .node-header h4 {
     color: #fff;
-    margin: 0 0 1rem 0;
+    margin: 0;
     font-size: 1rem;
+  }
+
+  .expand-button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0.25rem;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .expand-button:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .collapsed-info {
+    display: flex;
+    align-items: center;
+  }
+
+  .item-id {
+    color: #4a90e2;
+    font-weight: 600;
+    font-size: 0.9rem;
   }
 
   .field-group {

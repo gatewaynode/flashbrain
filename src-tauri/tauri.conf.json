@@ -14,7 +14,13 @@
       {
         "title": "flashbrain",
         "width": 1600,
-        "height": 1224
+        "height": 1224,
+        "visible": true,
+        "decorations": true,
+        "transparent": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "center": true
       }
     ],
     "security": {
