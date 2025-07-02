@@ -1,10 +1,13 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { Handle, Position } from '@xyflow/svelte';
+  import { invoke } from '@tauri-apps/api/core';
   
-  export let data;
+  const { data } = $props();
   
   const dispatch = createEventDispatcher();
+  
+  let isExpanded = $state(false);
   
   function handleInputChange(field, value) {
     const updatedItem = { ...data.item, [field]: value };
@@ -24,12 +27,38 @@
     dispatch('update', { ...data, item: updatedItem });
   }
   
-  function handleImageSelect() {
-    dispatch('imageSelect', { itemId: data.item.item_id });
+  async function handleImageSelect() {
+    try {
+      console.log('Opening image file dialog for item:', data.item.item_id);
+      
+      const result = await invoke('open_file_dialog', {
+        title: 'Select Image File',
+        filters: [
+          {
+            name: 'Image Files',
+            extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']
+          }
+        ]
+      });
+      
+      console.log('Image file dialog result:', result);
+      
+      if (result.success && result.filePath) {
+        // Update the image path in the item
+        handleInputChange('image', result.filePath);
+        console.log('Updated image path to:', result.filePath);
+      }
+    } catch (error) {
+      console.error('Failed to open image file dialog:', error);
+    }
+  }
+  
+  function toggleExpand() {
+    isExpanded = !isExpanded;
   }
 </script>
 
-<div class="item-node">
+<div class="item-node" class:collapsed={!isExpanded}>
   <Handle 
     type="target" 
     position={Position.Top} 
@@ -38,48 +67,59 @@
   />
   
   <div class="node-header">
-    <h4>{data.label}</h4>
+    <div class="header-content">
+      <h4>{data.label}</h4>
+      <button class="expand-button" on:click={toggleExpand}>
+        {isExpanded ? '▼' : '▶'}
+      </button>
+    </div>
+    <div class="collapsed-info">
+      <span class="item-id">{data.item.item_id}</span>
+    </div>
   </div>
-  <div class="node-content">
-    <div class="field-group">
-      <label>Item ID:</label>
-      <input 
-        type="text" 
-        value={data.item.item_id} 
-        on:input={(e) => handleInputChange('item_id', e.target.value)}
-      />
-    </div>
-    <div class="field-group">
-      <label>Text:</label>
-      <textarea 
-        value={data.item.text} 
-        on:input={(e) => handleInputChange('text', e.target.value)}
-      ></textarea>
-    </div>
-    <div class="field-group">
-      <label>Image Path:</label>
-      <div class="image-input">
+  
+  {#if isExpanded}
+    <div class="node-content">
+      <div class="field-group">
+        <label>Item ID:</label>
         <input 
           type="text" 
-          value={data.item.image} 
-          on:input={(e) => handleInputChange('image', e.target.value)}
+          value={data.item.item_id} 
+          on:input={(e) => handleInputChange('item_id', e.target.value)}
         />
-        <button class="image-button" on:click={handleImageSelect}>
-          📁
-        </button>
+      </div>
+      <div class="field-group">
+        <label>Text:</label>
+        <textarea 
+          value={data.item.text} 
+          on:input={(e) => handleInputChange('text', e.target.value)}
+        ></textarea>
+      </div>
+      <div class="field-group">
+        <label>Image Path:</label>
+        <div class="image-input">
+          <input 
+            type="text" 
+            value={data.item.image} 
+            on:input={(e) => handleInputChange('image', e.target.value)}
+          />
+          <button class="image-button" on:click={handleImageSelect}>
+            📁
+          </button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Speed:</label>
+        <input 
+          type="number" 
+          min="1" 
+          max="11" 
+          value={data.item.actions[0].payload.speed} 
+          on:input={(e) => handleSpeedChange(e.target.value)}
+        />
       </div>
     </div>
-    <div class="field-group">
-      <label>Speed:</label>
-      <input 
-        type="number" 
-        min="1" 
-        max="11" 
-        value={data.item.actions[0].payload.speed} 
-        on:input={(e) => handleSpeedChange(e.target.value)}
-      />
-    </div>
-  </div>
+  {/if}
   
   <Handle 
     type="source" 
@@ -97,12 +137,55 @@
     padding: 1rem;
     min-width: 250px;
     backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .item-node.collapsed {
+    min-width: 200px;
+    padding: 0.75rem;
+  }
+
+  .node-header {
+    margin-bottom: 1rem;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
   }
 
   .node-header h4 {
     color: #fff;
-    margin: 0 0 1rem 0;
+    margin: 0;
     font-size: 1rem;
+  }
+
+  .expand-button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0.25rem;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .expand-button:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .collapsed-info {
+    display: flex;
+    align-items: center;
+  }
+
+  .item-id {
+    color: #4a90e2;
+    font-weight: 600;
+    font-size: 0.9rem;
   }
 
   .field-group {

@@ -265,3 +265,25 @@ Acceptance criteria:
 - Added comprehensive styling matching the app's dark theme with glassmorphism effects
 - Verified successful build and integration with existing Tauri backend
 "
+
+### Story 11
+
+"As a user the edit page needs to hide the information in nodes to the bare minimum in the main edit pane, and then when I click on an expand icon the nodes open up to show all fields.  The layout also needs to be automatically arranged to show a tree view.
+
+- Nodes only show the `item_id` and an expand icon to show the rest of the fields
+- The library Dagre,https://github.com/dagrejs/dagre/wiki, should be used to provide a default SvelteFlow layout per https://svelteflow.dev/learn/layouting/layouting-libraries
+- The node image field icon is there but the implementation is TODO, please complete this functionality per story 10.
+
+**COMPLETED**:
+- Added Dagre library dependency for automatic tree layout
+- Updated MetaNode component to support collapsed/expanded states with expand/collapse icons
+- Updated ItemNode component to support collapsed/expanded states with expand/collapse icons
+- Implemented automatic tree layout using Dagre with top-to-bottom direction
+- Added "Auto Layout" button in tools panel to manually trigger layout
+- Completed image file dialog functionality in ItemNode component using RFD crate
+- Nodes now show only item_id/class_id when collapsed, with expand icon to reveal all fields
+- Automatic layout is applied when editor loads and can be manually triggered
+- Tree view maintains parent-child relationships (metadata → first item → subsequent items)
+- Image file dialog supports common image formats (png, jpg, jpeg, gif, bmp, webp)
+- All functionality integrated with existing Tauri backend file dialog system
+"

@@ -1,6 +1,8 @@
 # FlashBrain
 
-A Tauri desktop application for creating and using flashcards with images and text.
+**EARLY DEVELOPMENT VERSION**
+
+A Tauri desktop application for creating and using flashcard like informational displays with images and text.  The roadmap will include audio and video inpu/output, non-linear item flows, and quiz item types.
 
 ## Features
 
@@ -283,7 +285,7 @@ static/classes/
 
 ## 🧱 Non-Functional Requirements
 
-- Cross-platform: Windows, macOS, Linux
+- Cross-platform: ~~Windows~~, macOS, ~~Linux~~
 - Launch time < 2s
 - Memory usage < 100MB
 - Responsive design
@@ -299,17 +301,6 @@ static/classes/
 
 ---
 
-## 📅 Milestones
-
-| Milestone                         | Target Date |
-|----------------------------------|-------------|
-| JSON ingestion + basic UI        | Week 1      |
-| Image fade + text overlay        | Week 2      |
-| Word highlighting (stretch)      | Week 3      |
-| Theming & polish                 | Week 4      |
-
----
-
 ## 📂 Future Ideas
 - Sync with TTS or voiceover
 - Export user stats on lessons viewed
@@ -317,30 +308,3 @@ static/classes/
 
 
 # Appendix
-
-## Initial Install Setup
-
-```bash
-
-% tauri-make flashbrain
-✔ Identifier · com.----.flashbrain
-✔ Choose which language to use for your frontend · TypeScript / JavaScript - (pnpm, yarn, npm, deno, bun)
-✔ Choose your package manager · bun
-✔ Choose your UI template · Svelte - (https://svelte.dev/)
-✔ Choose your UI flavor · JavaScript
-
-Template created! To get started run:
-  cd flashbrain
-  bun install
-  bun run tauri android init
-  bun run tauri ios init
-
-For Desktop development, run:
-  bun run tauri dev
-
-For Android development, run:
-  bun run tauri android dev
-
-For iOS development, run:
-  bun run tauri ios dev
-```
