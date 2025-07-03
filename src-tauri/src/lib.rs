@@ -6,7 +6,7 @@ use rfd::FileDialog;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
-    pub class_id: String,
+    pub lesson_id: String,
     pub title: String,
     pub date: String,
     pub description: String,
@@ -21,6 +21,8 @@ pub struct TrainingData {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrainingItem {
+    pub title: String,
+    pub acronym: String,
     pub item_id: String,
     pub text: String,
     pub image: String,
@@ -107,23 +109,17 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
             
             println!("Found directory: {}", _dir_name);
             
-            // Look for both training.json and lesson.json in this directory
-            let training_json_path = path.join("training.json");
+            // Look for lesson.json in this directory (skip training.json until Story 13)
             let lesson_json_path = path.join("lesson.json");
             
-            let json_path = if training_json_path.exists() {
-                directories_with_training_json += 1;
-                directories_with_json += 1;
-                println!("Found training.json in: {}", training_json_path.display());
-                Some(training_json_path)
-            } else if lesson_json_path.exists() {
+            let json_path = if lesson_json_path.exists() {
                 directories_with_lesson_json += 1;
                 directories_with_json += 1;
                 println!("Found lesson.json in: {}", lesson_json_path.display());
                 Some(lesson_json_path)
             } else {
                 directories_without_json += 1;
-                println!("No training.json or lesson.json found in: {}", path.display());
+                println!("No lesson.json found in: {}", path.display());
                 None
             };
             
@@ -156,8 +152,8 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
     println!("=== LEARNING PATHS SUMMARY ===");
     println!("Total directories found: {}", total_directories);
     println!("Directories with JSON files: {}", directories_with_json);
-    println!("  - Directories with training.json: {}", directories_with_training_json);
     println!("  - Directories with lesson.json: {}", directories_with_lesson_json);
+    println!("  - Directories with training.json: 0 (skipped until Story 13)");
     println!("Directories without JSON files: {}", directories_without_json);
     println!("Total learning paths successfully loaded: {}", learning_paths.len());
     println!("=================================");

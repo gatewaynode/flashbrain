@@ -20,7 +20,7 @@ The application uses JSON files to store lesson data. Here's the schema:
 ```json
 {
   "meta": {
-    "class_id": "string",
+    "lesson_id": "string",
     "title": "string",
     "date": "string (YYYY-MM-DD)",
     "description": "string",
@@ -28,6 +28,8 @@ The application uses JSON files to store lesson data. Here's the schema:
   },
   "items": [
     {
+      "title": "string",
+      "acronym": "string",
       "item_id": "string",
       "text": "string",
       "image": "string (path to image)",
@@ -46,11 +48,13 @@ The application uses JSON files to store lesson data. Here's the schema:
 
 ### Field Descriptions
 
-- `meta.class_id`: Unique identifier for the lesson
+- `meta.lesson_id`: Unique identifier for the lesson
 - `meta.title`: Display name for the lesson
 - `meta.date`: Creation date in YYYY-MM-DD format
 - `meta.description`: Description of the lesson content
 - `meta.seconds_per_word`: Duration each word is highlighted during training
+- `items[].title`: Display title for the item
+- `items[].acronym`: Short acronym or abbreviation for the item
 - `items[].item_id`: Unique identifier for each flashcard
 - `items[].text`: Text content to display
 - `items[].image`: Path to the image file
@@ -141,7 +145,7 @@ A desktop application that visually introduces learners to content by first show
 ```json
 {
   "meta": {
-    "class_id": "test-1",
+    "lesson_id": "test-1",
     "title": "Marcus Aurelius Quotes",
     "date": "2025-06-29",
     "description": "This is a test of the flashbrain app. It is a simple app that allows you to create flashcards with images and text. The app will then flash the image and text for a given duration and speed.",
@@ -181,7 +185,7 @@ A desktop application that visually introduces learners to content by first show
 ### Schema Details
 
 #### Meta Object
-- `class_id`: Unique identifier for the learning class/session
+- `lesson_id`: Unique identifier for the learning lesson
 - `title`: Display name for the learning session
 - `date`: Creation or last modified date (YYYY-MM-DD format)
 - `description`: Detailed description of the learning content

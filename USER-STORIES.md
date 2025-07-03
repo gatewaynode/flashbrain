@@ -287,3 +287,113 @@ Acceptance criteria:
 - Image file dialog supports common image formats (png, jpg, jpeg, gif, bmp, webp)
 - All functionality integrated with existing Tauri backend file dialog system
 "
+
+### Story 12
+
+'As a user the training items we are going to need some additional fields.  We need to update the schema in the `lesson.json` to support better display and contextualization.  And we need to change the `training.json` to be a parent element for multiple `lesson.json` items.
+
+- Add the string field `title` to each item in the `items` list for both `static/classes/rsti_lesson_package/lesson.json` and `static/classes/tcrei_lesson_package/lesson.json`
+- Update the documentation and all implementations of the item variable including the Rust `pub struct TrainingItem` for the new item title
+- Add the string field `acronym` to each item in the `items` list for both `static/classes/rsti_lesson_package/lesson.json` and `static/classes/tcrei_lesson_package/lesson.json`
+- Update the documentation and all implementations of the item variable including the Rust `pub struct TrainingItem` for the new item acronym
+- Change the string field `class_id` in the metadata section to `lesson_id` in both `static/classes/rsti_lesson_package/lesson.json` and `static/classes/tcrei_lesson_package/lesson.json`
+- Update the documentation and all implementations of the item variable including the Rust `pub struct Meta` for the new item lesson_id
+- Don't touch `static/classes/test-1/training.json` that's for the next story.
+
+The new schema for lesson.json files should match this:
+```json
+{
+  "meta": {
+    "lesson_id": "string",
+    "title": "string",
+    "date": "string (YYYY-MM-DD)",
+    "description": "string",
+    "seconds_per_word": "number"
+  },
+  "items": [
+    {
+      "title": "string",
+      "acronym": "string",
+      "item_id": "string",
+      "text": "string",
+      "image": "string (path to image)",
+      "actions": [
+        {
+          "type": "string",
+          "payload": {
+            "speed": "number"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Acceptance criteria:
+
+- The lesson.json file schema has been updated and all implementations of the code have been updated to match the new schema
+- The documentation has been updated to reflect the changes to the schema
+
+**COMPLETED**:
+- Updated both lesson.json files (rsti_lesson_package and tcrei_lesson_package) with new schema
+- Added `title` and `acronym` fields to each item in both lesson.json files
+- Changed `class_id` to `lesson_id` in metadata section of both lesson.json files
+- Updated Rust structs (`Meta` and `TrainingItem`) to match new schema
+- Updated frontend components (MetaNode and ItemNode) to use new field names
+- Updated editor page to use `lesson_id` instead of `class_id`
+- Updated README.md documentation to reflect new schema
+- Temporarily modified parsing logic to skip training.json files until Story 13
+- Verified successful build and integration
+'
+
+### Story 13
+
+'As a user the `training.json` file should be converted to a parent data type capable of linking to additional `lesson.json` files, so that multiple trainings can be strung together.
+
+- Add the necessary Rust structs to match the following schema as a new complex data type
+- Update the `static/classes/test-1/training.json` to match the following schema:
+
+```json
+{
+  "meta": {
+    "class_id": "string",
+    "title": "string",
+    "date": "string (YYYY-MM-DD)",
+    "description": "string",
+    "custom_order": "string"
+  },
+  "children": [
+    {
+      "lesson_id": "string",
+      "default_order": "number",
+      "title": "string",
+      "gated": "boolean",
+      "gates": [
+        {
+          "type": "string",
+          "payload": {
+            "speed": "number"
+          }
+        }
+      ]
+      "image": "string (path to image)",
+      "actions": [
+        {
+          "type": "string",
+          "payload": {
+            "speed": "number"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+- Update the documentation to add the new data type
+- The "New" page will now parse `training.json` as a multiple type and show slightly similar information but clearly indicate a multiple lesson format.
+
+Acceptance criteria:
+
+- A new parent data type is available to link multiple lessons together.
