@@ -1,6 +1,6 @@
 {
   "meta": {
-    "class_id": "google-prompt-tcrei",
+    "lesson_id": "google-prompt-tcrei",
     "title": "Google Prompt Framework TCREI",
     "date": "2025-06-30",
     "description": "Detailed instructions on the TCREI framework for prompt engineering.",
@@ -8,6 +8,8 @@
   },
   "items": [
     {
+      "title": "Topic",
+      "acronym": "T",
       "item_id": "T",
       "text": "Topic: Clearly identify the subject area. Example: 'Quantum computing basics.'",
       "image": "/classes/tcrei_lesson_package/topic.png",
@@ -21,6 +23,8 @@
       ]
     },
     {
+      "title": "Context",
+      "acronym": "C",
       "item_id": "C",
       "text": "Context: Offer background information or relevant details. Example: 'Audience has high-school level physics knowledge.'",
       "image": "/classes/tcrei_lesson_package/context.png",
@@ -34,6 +38,8 @@
       ]
     },
     {
+      "title": "Request",
+      "acronym": "R",
       "item_id": "R",
       "text": "Request: State exactly what is to be generated. Example: 'Summarize key principles in bullet points.'",
       "image": "/classes/tcrei_lesson_package/references.png",
@@ -47,6 +53,8 @@
       ]
     },
     {
+      "title": "Examples",
+      "acronym": "E",
       "item_id": "E",
       "text": "Examples: Provide sample outputs if possible. Example: 'Use examples like superposition and entanglement.'",
       "image": "/classes/tcrei_lesson_package/evaluate.png",
@@ -60,6 +68,8 @@
       ]
     },
     {
+      "title": "Instructions",
+      "acronym": "I",
       "item_id": "I",
       "text": "Instructions: Add style or format rules. Example: 'Keep it under 200 words, use plain language.'",
       "image": "/classes/tcrei_lesson_package/iterate.png",

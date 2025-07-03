@@ -78,6 +78,22 @@
   {#if isExpanded}
     <div class="node-content">
       <div class="field-group">
+        <label>Title:</label>
+        <input 
+          type="text" 
+          value={data.item.title} 
+          on:input={(e) => handleInputChange('title', e.target.value)}
+        />
+      </div>
+      <div class="field-group">
+        <label>Acronym:</label>
+        <input 
+          type="text" 
+          value={data.item.acronym} 
+          on:input={(e) => handleInputChange('acronym', e.target.value)}
+        />
+      </div>
+      <div class="field-group">
         <label>Item ID:</label>
         <input 
           type="text" 

@@ -75,11 +75,11 @@
       error = null;
       console.log('Loading lesson data from:', filePath);
       
-      // Extract class_id from file path
+      // Extract lesson_id from file path
       const pathParts = filePath.split('/');
-      const classId = pathParts[pathParts.length - 2]; // Get directory name
+      const lessonId = pathParts[pathParts.length - 2]; // Get directory name
       
-      const data = await invoke('load_training_data', { classId });
+      const data = await invoke('load_training_data', { classId: lessonId });
       console.log('Loaded lesson data:', data);
       lessonData = data;
       

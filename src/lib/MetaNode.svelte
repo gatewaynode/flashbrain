@@ -34,18 +34,18 @@
       </button>
     </div>
     <div class="collapsed-info">
-      <span class="item-id">{data.meta.class_id}</span>
+      <span class="item-id">{data.meta.lesson_id}</span>
     </div>
   </div>
   
   {#if isExpanded}
     <div class="node-content">
       <div class="field-group">
-        <label>Class ID:</label>
+        <label>Lesson ID:</label>
         <input 
           type="text" 
-          value={data.meta.class_id} 
-          on:input={(e) => handleInputChange('class_id', e.target.value)}
+          value={data.meta.lesson_id} 
+          on:input={(e) => handleInputChange('lesson_id', e.target.value)}
         />
       </div>
       <div class="field-group">

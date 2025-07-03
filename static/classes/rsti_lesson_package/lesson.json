@@ -1,6 +1,6 @@
 {
   "meta": {
-    "class_id": "google-prompt-rsti",
+    "lesson_id": "google-prompt-rsti",
     "title": "Google Prompt Framework RSTI",
     "date": "2025-06-30",
     "description": "Detailed instructions on the RSTI framework for prompt engineering.",
@@ -8,6 +8,8 @@
   },
   "items": [
     {
+      "title": "Role",
+      "acronym": "R",
       "item_id": "R",
       "text": "Role: Clearly define who or what the assistant is supposed to be. Example: 'You are a friendly math tutor.'",
       "image": "/classes/rsti_lesson_package/role.png",
@@ -21,6 +23,8 @@
       ]
     },
     {
+      "title": "Scenario",
+      "acronym": "S",
       "item_id": "S",
       "text": "Scenario: Provide the situation or context. Example: 'Helping a student prepare for algebra exams.'",
       "image": "/classes/rsti_lesson_package/scenario.png",
@@ -34,6 +38,8 @@
       ]
     },
     {
+      "title": "Task",
+      "acronym": "T",
       "item_id": "T",
       "text": "Task: Specify the task you want completed. Example: 'Create 5 practice problems with solutions.'",
       "image": "/classes/rsti_lesson_package/task.png",
@@ -47,6 +53,8 @@
       ]
     },
     {
+      "title": "Instructions",
+      "acronym": "I",
       "item_id": "I",
       "text": "Instructions: Give any formatting or style constraints. Example: 'Present in JSON format, concise explanations.'",
       "image": "/classes/rsti_lesson_package/instructions.png",
