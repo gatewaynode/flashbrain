@@ -1,15 +1,25 @@
 {
   "meta": {
-    "class_id": "test-1",
-    "title": "Marcus Aurelius Quotes",
+    "class_id": "prompt-engineering-1",
+    "title": "Prompt Engineering 1",
     "date": "2025-06-29",
-    "description": "This is a test of the flashbrain app.  It is a simple app that allows you to create flashcards with images and text.  The app will then flash the image and text for a given duration and speed.",
-    "seconds_per_word": 0.5
+    "description": "A series of prompt engineering frameworks and patterns.",
+    "custom_order": "sequential"
   },
-  "items": [
+  "children": [
     {
-      "item_id": "1",
-      "text": "Men exist for the sake of one another.  Teach them then or bear with them.",
+      "lesson_id": "google-prompt-tcrei",
+      "default_order": 1,
+      "title": "Review: Task Context References Evaluate Iterate",
+      "gated": false,
+      "gates": [
+        {
+          "type": "completion",
+          "payload": {
+            "speed": 5
+          }
+        }
+      ],
       "image": "/classes/test-1/test_pattern.png",
       "actions": [
         {
@@ -21,14 +31,24 @@
       ]
     },
     {
-      "item_id": "2",
-      "text": "Does the sun undertake to do the work of the rain, or Aesculpius the work of the Fruit-bearer(the earth)?  And how is it with respect to each of the stars, are they not different and yet they work together to the same end?",
+      "lesson_id": "google-prompt-rsti",
+      "default_order": 2,
+      "title": "Review: Revisit Separate Try different phrasing Introduce constraints",
+      "gated": true,
+      "gates": [
+        {
+          "type": "completion",
+          "payload": {
+            "speed": 7
+          }
+        }
+      ],
       "image": "/classes/test-1/triangle-mojo.png",
       "actions": [
         {
           "type": "flash",
           "payload": {
-            "speed": 10
+            "speed": 8
           }
         }
       ]

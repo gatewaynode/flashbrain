@@ -397,3 +397,162 @@ Acceptance criteria:
 Acceptance criteria:
 
 - A new parent data type is available to link multiple lessons together.
+
+**COMPLETED**:
+- Added new Rust structs: `TrainingMeta`, `TrainingChild`, and `ParentTrainingData` for the parent data type
+- Updated `static/classes/test-1/training.json` to match the new schema with children array
+- Updated parsing logic in `get_learning_paths()` to handle both lesson.json and training.json files
+- Updated `load_training_data()` function to return appropriate data type based on file type
+- Enhanced "New" page display to show "(Multi-Lesson)" indicator for training.json files
+- Updated README.md documentation to include both lesson.json and training.json schemas
+- Training.json files now show lesson count in description (e.g., "Contains 2 linked lessons")
+- **ENHANCED**: Updated editor page to handle both lesson.json and training.json data types
+- **ENHANCED**: Created new `TrainingChildNode` component for editing training child nodes
+- **ENHANCED**: Editor now automatically detects data type and creates appropriate node structure
+- **ENHANCED**: Training.json files show children as editable nodes with gates and actions
+- **ENHANCED**: Different edge colors for lesson items (red) vs training children (purple)
+- Verified successful build and integration with existing functionality
+'
+
+# Stories still in draft
+
+### Story #
+
+`As a user the directory storage style is cumbersome there should be a zip format that can handle collecting and compressing our classes.
+
+- The zip file should end in the extension `.lrn` but remain a zip formatted archive
+- The zip file contains the `meta` fields of the `training.json` or `lesson.json` in file headers "Extra" field
+- For a `training.json` the children lessons are zipped up separately inside the parent zip
+- All instances of opening or saving a lesson or training use 
+`
+
+### Story #
+
+'As a user the training page should be updated to handle the new parent data type.
+
+- The training page should now be able to parse the `training.json` file and iterate through the children
+- The children should be displayed in the order of the `default_order` field
+- The training page should display the `title` and `image` of the child before starting the lesson
+- The training page should then iterate through the items of the lesson linked by the `lesson_id`
+- The training page should then return to the parent training page to display the next child
+
+Acceptance criteria:
+
+- The training page can now handle the new parent data type
+- The training page can now iterate through the children of the parent data type
+- The training page can now iterate through the items of the lesson linked by the `lesson_id`
+'
+
+### Story #
+
+'As a user the editor page should be updated to handle the new parent data type.
+
+- The editor page should now be able to parse the `training.json` file and create the appropriate nodes
+- The editor page should create a parent node for the `meta` section of the `training.json` file
+- The editor page should create a child node for each of the `children` in the `training.json` file
+- The editor page should link the parent node to the first child node
+- The editor page should link each child node to the next child node in the order of the `default_order` field
+
+Acceptance criteria:
+
+- The editor page can now handle the new parent data type
+- The editor page can now create the appropriate nodes for the parent data type
+- The editor page can now link the nodes in the correct order
+'
+
+### Story #
+
+'As a user the application is not saving any of the edits I make in the editor.
+
+- Add a save button to the editor page that will save the changes to the file
+- The save button should be disabled if there are no changes to the file
+- The save button should be enabled if there are changes to the file
+- The save button should save the changes to the file and then disable itself
+- The save button should also update the global state of the application with the new data
+
+Acceptance criteria:
+
+- The editor page now has a save button
+- The save button is disabled if there are no changes to the file
+- The save button is enabled if there are changes to the file
+- The save button saves the changes to the file and then disables itself
+- The save button updates the global state of the application with the new data
+'
+
+### Story #
+
+'As a user the application is not creating new files.
+
+- Add a create button to the editor page that will create a new file
+- The create button should open a dialogue modal for a new lesson name
+- The create button should then create a new file with the given name
+- The create button should then open the new file in the editor
+- The create button should also update the global state of the application with the new data
+
+Acceptance criteria:
+
+- The editor page now has a create button
+- The create button opens a dialogue modal for a new lesson name
+- The create button creates a new file with the given name
+- The create button opens the new file in the editor
+- The create button updates the global state of the application with the new data
+'
+
+### Story #
+
+'As a user the application is not deleting files.
+
+- Add a delete button to the editor page that will delete the file
+- The delete button should be disabled if there is no file open
+- The delete button should be enabled if there is a file open
+- The delete button should ask for confirmation before deleting the file
+- The delete button should delete the file and then close the editor
+- The delete button should also update the global state of the application
+
+Acceptance criteria:
+
+- The editor page now has a delete button
+- The delete button is disabled if there is no file open
+- The delete button is enabled if there is a file open
+- The delete button asks for confirmation before deleting the file
+- The delete button deletes the file and then closes the editor
+- The delete button updates the global state of the application
+'
+
+### Story #
+
+'As a user the application is not importing files.
+
+- Add an import button to the editor page that will import a file
+- The import button should open a file picker widget to get the file path
+- The import button should then copy the file to the lessons directory
+- The import button should then open the new file in the editor
+- The import button should also update the global state of the application with the new data
+
+Acceptance criteria:
+
+- The editor page now has an import button
+- The import button opens a file picker widget to get the file path
+- The import button copies the file to the lessons directory
+- The import button opens the new file in the editor
+- The import button updates the global state of the application with the new data
+'
+
+
+
+### Story #
+
+'As a user the application is not exporting files.
+
+- Add an export button to the editor page that will export a file
+- The export button should open a file picker widget to get the file path
+- The export button should then copy the file to the selected path
+- The export button should also update the global state of the application with the new data
+
+Acceptance criteria:
+
+- The editor page now has an export button
+- The export button opens a file picker widget to get the file path
+- The export button copies the file to the selected path
+- The export button updates the global state of the application with the new data
+'

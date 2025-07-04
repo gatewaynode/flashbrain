@@ -29,6 +29,33 @@ pub struct TrainingItem {
     pub actions: Vec<Action>,
 }
 
+// New parent data type for linking multiple lessons
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TrainingMeta {
+    pub class_id: String,
+    pub title: String,
+    pub date: String,
+    pub description: String,
+    pub custom_order: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TrainingChild {
+    pub lesson_id: String,
+    pub default_order: u32,
+    pub title: String,
+    pub gated: bool,
+    pub gates: Vec<Action>,
+    pub image: String,
+    pub actions: Vec<Action>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ParentTrainingData {
+    pub meta: TrainingMeta,
+    pub children: Vec<TrainingChild>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Action {
     #[serde(rename = "type")]
@@ -109,41 +136,70 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
             
             println!("Found directory: {}", _dir_name);
             
-            // Look for lesson.json in this directory (skip training.json until Story 13)
+            // Look for both lesson.json and training.json in this directory
             let lesson_json_path = path.join("lesson.json");
+            let training_json_path = path.join("training.json");
             
             let json_path = if lesson_json_path.exists() {
                 directories_with_lesson_json += 1;
                 directories_with_json += 1;
                 println!("Found lesson.json in: {}", lesson_json_path.display());
-                Some(lesson_json_path)
+                Some((lesson_json_path, "lesson"))
+            } else if training_json_path.exists() {
+                directories_with_training_json += 1;
+                directories_with_json += 1;
+                println!("Found training.json in: {}", training_json_path.display());
+                Some((training_json_path, "training"))
             } else {
                 directories_without_json += 1;
-                println!("No lesson.json found in: {}", path.display());
+                println!("No lesson.json or training.json found in: {}", path.display());
                 None
             };
             
-            if let Some(json_path) = json_path {
+            if let Some((json_path, file_type)) = json_path {
                 let json_content = fs::read_to_string(&json_path)
                     .map_err(|e| format!("Failed to read {}: {}", json_path.display(), e))?;
                 
                 println!("JSON content length: {} characters", json_content.len());
                 println!("JSON content preview: {}", &json_content[..json_content.len().min(200)]);
                 
-                let training_data: TrainingData = serde_json::from_str(&json_content)
-                    .map_err(|e| {
-                        println!("JSON parsing error: {}", e);
-                        format!("Failed to parse JSON in {}: {}", json_path.display(), e)
-                    })?;
-                
-                println!("Successfully parsed training data for: {}", training_data.meta.title);
-                
-                learning_paths.push(LearningPath {
-                    id: _dir_name.to_string(),
-                    title: training_data.meta.title,
-                    date: training_data.meta.date,
-                    description: training_data.meta.description,
-                });
+                match file_type {
+                    "lesson" => {
+                        let training_data: TrainingData = serde_json::from_str(&json_content)
+                            .map_err(|e| {
+                                println!("JSON parsing error: {}", e);
+                                format!("Failed to parse lesson JSON in {}: {}", json_path.display(), e)
+                            })?;
+                        
+                        println!("Successfully parsed lesson data for: {}", training_data.meta.title);
+                        
+                        learning_paths.push(LearningPath {
+                            id: _dir_name.to_string(),
+                            title: training_data.meta.title,
+                            date: training_data.meta.date,
+                            description: training_data.meta.description,
+                        });
+                    },
+                    "training" => {
+                        let parent_training_data: ParentTrainingData = serde_json::from_str(&json_content)
+                            .map_err(|e| {
+                                println!("JSON parsing error: {}", e);
+                                format!("Failed to parse training JSON in {}: {}", json_path.display(), e)
+                            })?;
+                        
+                        println!("Successfully parsed training data for: {}", parent_training_data.meta.title);
+                        
+                        learning_paths.push(LearningPath {
+                            id: _dir_name.to_string(),
+                            title: format!("{} (Multi-Lesson)", parent_training_data.meta.title),
+                            date: parent_training_data.meta.date,
+                            description: format!("{} - Contains {} linked lessons", parent_training_data.meta.description, parent_training_data.children.len()),
+                        });
+                    },
+                    _ => {
+                        return Err(format!("Unknown file type: {}", file_type));
+                    }
+                }
             }
         }
     }
@@ -153,7 +209,7 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
     println!("Total directories found: {}", total_directories);
     println!("Directories with JSON files: {}", directories_with_json);
     println!("  - Directories with lesson.json: {}", directories_with_lesson_json);
-    println!("  - Directories with training.json: 0 (skipped until Story 13)");
+    println!("  - Directories with training.json: {}", directories_with_training_json);
     println!("Directories without JSON files: {}", directories_without_json);
     println!("Total learning paths successfully loaded: {}", learning_paths.len());
     println!("=================================");
@@ -162,7 +218,7 @@ fn get_learning_paths() -> Result<Vec<LearningPath>, String> {
 }
 
 #[tauri::command]
-fn load_training_data(class_id: String) -> Result<TrainingData, String> {
+fn load_training_data(class_id: String) -> Result<serde_json::Value, String> {
     // Try multiple possible paths for the classes directory
     let possible_paths = vec![
         "static/classes",
@@ -199,26 +255,42 @@ fn load_training_data(class_id: String) -> Result<TrainingData, String> {
     let training_json_path = class_path.join("training.json");
     let lesson_json_path = class_path.join("lesson.json");
     
-    let json_path = if training_json_path.exists() {
+    let (json_path, file_type) = if training_json_path.exists() {
         println!("Found training.json in class '{}'", class_id);
-        training_json_path
+        (training_json_path, "training")
     } else if lesson_json_path.exists() {
         println!("Found lesson.json in class '{}'", class_id);
-        lesson_json_path
+        (lesson_json_path, "lesson")
     } else {
         return Err(format!("Neither training.json nor lesson.json found in class '{}'", class_id));
     };
 
-    println!("Loading training data from: {}", json_path.display());
+    println!("Loading data from: {}", json_path.display());
     
     let json_content = fs::read_to_string(&json_path)
         .map_err(|e| format!("Failed to read {}: {}", json_path.display(), e))?;
     
-    let training_data: TrainingData = serde_json::from_str(&json_content)
-        .map_err(|e| format!("Failed to parse JSON in {}: {}", json_path.display(), e))?;
-    
-    println!("Successfully loaded training data for: {}", training_data.meta.title);
-    Ok(training_data)
+    match file_type {
+        "lesson" => {
+            let training_data: TrainingData = serde_json::from_str(&json_content)
+                .map_err(|e| format!("Failed to parse lesson JSON in {}: {}", json_path.display(), e))?;
+            
+            println!("Successfully loaded lesson data for: {}", training_data.meta.title);
+            Ok(serde_json::to_value(training_data)
+                .map_err(|e| format!("Failed to serialize lesson data: {}", e))?)
+        },
+        "training" => {
+            let parent_training_data: ParentTrainingData = serde_json::from_str(&json_content)
+                .map_err(|e| format!("Failed to parse training JSON in {}: {}", json_path.display(), e))?;
+            
+            println!("Successfully loaded training data for: {}", parent_training_data.meta.title);
+            Ok(serde_json::to_value(parent_training_data)
+                .map_err(|e| format!("Failed to serialize training data: {}", e))?)
+        },
+        _ => {
+            return Err(format!("Unknown file type: {}", file_type));
+        }
+    }
 }
 
 #[tauri::command]
