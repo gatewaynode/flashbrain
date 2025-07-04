@@ -15,7 +15,11 @@ A Tauri desktop application for creating and using flashcard like informational 
 
 ## JSON Schema
 
-The application uses JSON files to store lesson data. Here's the schema:
+The application uses JSON files to store lesson data. There are two types of JSON files:
+
+### 1. Lesson JSON Schema (lesson.json)
+
+Individual lessons with items:
 
 ```json
 {
@@ -46,8 +50,50 @@ The application uses JSON files to store lesson data. Here's the schema:
 }
 ```
 
+### 2. Parent Training JSON Schema (training.json)
+
+Parent containers that link multiple lessons together:
+
+```json
+{
+  "meta": {
+    "class_id": "string",
+    "title": "string",
+    "date": "string (YYYY-MM-DD)",
+    "description": "string",
+    "custom_order": "string"
+  },
+  "children": [
+    {
+      "lesson_id": "string",
+      "default_order": "number",
+      "title": "string",
+      "gated": "boolean",
+      "gates": [
+        {
+          "type": "string",
+          "payload": {
+            "speed": "number"
+          }
+        }
+      ],
+      "image": "string (path to image)",
+      "actions": [
+        {
+          "type": "string",
+          "payload": {
+            "speed": "number"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### Field Descriptions
 
+#### Lesson JSON Fields
 - `meta.lesson_id`: Unique identifier for the lesson
 - `meta.title`: Display name for the lesson
 - `meta.date`: Creation date in YYYY-MM-DD format
@@ -60,6 +106,20 @@ The application uses JSON files to store lesson data. Here's the schema:
 - `items[].image`: Path to the image file
 - `items[].actions[].type`: Type of action (e.g., "flash")
 - `items[].actions[].payload.speed`: Speed parameter for the action
+
+#### Parent Training JSON Fields
+- `meta.class_id`: Unique identifier for the training class
+- `meta.title`: Display name for the training series
+- `meta.date`: Creation date in YYYY-MM-DD format
+- `meta.description`: Description of the training series
+- `meta.custom_order`: Custom ordering preference for lessons
+- `children[].lesson_id`: Reference to a specific lesson
+- `children[].default_order`: Default display order for the lesson
+- `children[].title`: Display title for the lesson
+- `children[].gated`: Whether the lesson requires completion of previous lessons
+- `children[].gates`: Array of gate conditions that must be met
+- `children[].image`: Path to the lesson image
+- `children[].actions`: Array of actions to perform with the lesson
 
 ## Development
 

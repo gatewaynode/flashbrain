@@ -7,6 +7,7 @@
   import dagre from 'dagre';
   import MetaNode from '$lib/MetaNode.svelte';
   import ItemNode from '$lib/ItemNode.svelte';
+  import TrainingChildNode from '$lib/TrainingChildNode.svelte';
   import CustomEdge from '$lib/CustomEdge.svelte';
 
   let isLoaded = $state(false);
@@ -22,7 +23,8 @@
   let edges = $state([]);
   let nodeTypes = $state({
     metaNode: MetaNode,
-    itemNode: ItemNode
+    itemNode: ItemNode,
+    trainingChildNode: TrainingChildNode
   });
   let edgeTypes = $state({
     customEdge: CustomEdge
@@ -104,69 +106,148 @@
     
     console.log('Creating nodes from data:', data);
     
-    // Create metadata node (parent)
-    const metaNode = {
-      id: 'meta',
-      type: 'metaNode',
-      position: { x: 400, y: 100 },
-      data: {
-        label: 'Metadata',
-        meta: data.meta
-      }
-    };
-    newNodes.push(metaNode);
-    console.log('Created meta node:', metaNode);
+    // Detect data type based on structure
+    const isTrainingData = data.children && Array.isArray(data.children);
+    const isLessonData = data.items && Array.isArray(data.items);
     
-    // Create item nodes (children)
-    data.items.forEach((item, index) => {
-      const itemNode = {
-        id: `item-${item.item_id}`,
-        type: 'itemNode',
-        position: { x: 400, y: 350 + (index * 300) },
+    console.log('Data type detection:', { isTrainingData, isLessonData });
+    
+    if (isTrainingData) {
+      // Handle training.json (parent data type)
+      console.log('Processing training data with children');
+      
+      // Create metadata node (parent)
+      const metaNode = {
+        id: 'meta',
+        type: 'metaNode',
+        position: { x: 400, y: 100 },
         data: {
-          label: `Item ${item.item_id}`,
-          item: item
+          label: 'Training Metadata',
+          meta: data.meta
         }
       };
-      newNodes.push(itemNode);
-      console.log(`Created item node ${index}:`, itemNode);
+      newNodes.push(metaNode);
+      console.log('Created training meta node:', metaNode);
       
-      // Create edge from metadata to first item, or from previous item to current item
-      if (index === 0) {
-        const edge = {
-          id: `edge-meta-${item.item_id}`,
-          source: 'meta',
-          target: `item-${item.item_id}`,
-          type: 'customEdge',
-          style: {
-            stroke: '#ff0000',
-            strokeWidth: 4,
-            strokeDasharray: '10,5'
-          },
-          animated: true
+      // Create training child nodes
+      data.children.forEach((child, index) => {
+        const childNode = {
+          id: `child-${child.lesson_id}`,
+          type: 'trainingChildNode',
+          position: { x: 400, y: 350 + (index * 300) },
+          data: {
+            label: `Lesson: ${child.title}`,
+            child: child
+          }
         };
-        newEdges.push(edge);
-        console.log('Created edge from meta to first item:', edge);
-      } else {
-        const prevItem = data.items[index - 1];
-        console.log('prevItem', prevItem);
-        console.log('item', item);
-        const edge = {
-          id: `edge-${prevItem.item_id}-${item.item_id}`,
-          source: `item-${prevItem.item_id}`,
-          target: `item-${item.item_id}`,
-          type: 'customEdge',
-          style: {
-            stroke: '#ff0000',
-            strokeWidth: 4,
-            strokeDasharray: '10,5'
-          },
-          animated: true
+        newNodes.push(childNode);
+        console.log(`Created training child node ${index}:`, childNode);
+        
+        // Create edge from metadata to first child, or from previous child to current child
+        if (index === 0) {
+          const edge = {
+            id: `edge-meta-${child.lesson_id}`,
+            source: 'meta',
+            target: `child-${child.lesson_id}`,
+            type: 'customEdge',
+            style: {
+              stroke: '#8e44ad',
+              strokeWidth: 4,
+              strokeDasharray: '10,5'
+            },
+            animated: true
+          };
+          newEdges.push(edge);
+          console.log('Created edge from meta to first child:', edge);
+        } else {
+          const prevChild = data.children[index - 1];
+          const edge = {
+            id: `edge-${prevChild.lesson_id}-${child.lesson_id}`,
+            source: `child-${prevChild.lesson_id}`,
+            target: `child-${child.lesson_id}`,
+            type: 'customEdge',
+            style: {
+              stroke: '#8e44ad',
+              strokeWidth: 4,
+              strokeDasharray: '10,5'
+            },
+            animated: true
+          };
+          newEdges.push(edge);
+          console.log(`Created edge from child ${prevChild.lesson_id} to child ${child.lesson_id}:`, edge);
+        }
+      });
+      
+    } else if (isLessonData) {
+      // Handle lesson.json (individual lesson data)
+      console.log('Processing lesson data with items');
+      
+      // Create metadata node (parent)
+      const metaNode = {
+        id: 'meta',
+        type: 'metaNode',
+        position: { x: 400, y: 100 },
+        data: {
+          label: 'Lesson Metadata',
+          meta: data.meta
+        }
+      };
+      newNodes.push(metaNode);
+      console.log('Created lesson meta node:', metaNode);
+      
+      // Create item nodes (children)
+      data.items.forEach((item, index) => {
+        const itemNode = {
+          id: `item-${item.item_id}`,
+          type: 'itemNode',
+          position: { x: 400, y: 350 + (index * 300) },
+          data: {
+            label: `Item ${item.item_id}`,
+            item: item
+          }
         };
-        newEdges.push(edge);
-        console.log(`Created edge from item ${prevItem.item_id} to item ${item.item_id}:`, edge);
-      }
-    });
+        newNodes.push(itemNode);
+        console.log(`Created item node ${index}:`, itemNode);
+        
+        // Create edge from metadata to first item, or from previous item to current item
+        if (index === 0) {
+          const edge = {
+            id: `edge-meta-${item.item_id}`,
+            source: 'meta',
+            target: `item-${item.item_id}`,
+            type: 'customEdge',
+            style: {
+              stroke: '#ff0000',
+              strokeWidth: 4,
+              strokeDasharray: '10,5'
+            },
+            animated: true
+          };
+          newEdges.push(edge);
+          console.log('Created edge from meta to first item:', edge);
+        } else {
+          const prevItem = data.items[index - 1];
+          const edge = {
+            id: `edge-${prevItem.item_id}-${item.item_id}`,
+            source: `item-${prevItem.item_id}`,
+            target: `item-${item.item_id}`,
+            type: 'customEdge',
+            style: {
+              stroke: '#ff0000',
+              strokeWidth: 4,
+              strokeDasharray: '10,5'
+            },
+            animated: true
+          };
+          newEdges.push(edge);
+          console.log(`Created edge from item ${prevItem.item_id} to item ${item.item_id}:`, edge);
+        }
+      });
+      
+    } else {
+      console.error('Unknown data structure:', data);
+      throw new Error('Unknown data structure - neither items nor children found');
+    }
     
     console.log('Final nodes array:', newNodes);
     console.log('Final edges array:', newEdges);
